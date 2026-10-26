@@ -204,11 +204,13 @@
 </div>
 
 <script>
+// 難易度順序の定義
 const DIFF_RANKS = [
     "F", "個人差E", "E", "個人差D", "D", "個人差C", "C", "個人差B", "B", 
     "個人差A", "A", "個人差A＋", "A＋", "個人差S", "S", "個人差S＋", "S＋", "SS"
 ];
 
+// テキストデータを解析して構築した完全な★10楽曲データベース
 const RAW_SONGS = [
     { name: "Infinite Rebellion", r: "SS" }, { name: "彁", r: "SS" }, { name: "銀の黎明か、黒の晶華か。", r: "SS" }, { name: "CRUXNAUT", r: "SS" }, { name: "The Future of the 太鼓ドラム", r: "SS" }, { name: "神竜 ～Shinryu～", r: "SS" }, { name: "憎悪と醜悪の花束", r: "SS" }, { name: "ダーク・エクス・マキナ♡", r: "SS" }, { name: "ダーク・エクス・マキナ！", r: "SS" }, { name: "第六天魔王", r: "SS" }, { name: "第六天魔王", r: "SS" }, { name: "ダンガンノーツ", r: "SS" }, { name: "Destination 2F29", r: "SS" }, { name: "ドンカマ2000", r: "SS" }, { name: "23時54分、陽の旅路へのプレリュード", r: "SS" }, { name: "Vixtory vs.VIGVANGS", r: "SS" }, { name: "poxei♦︎DOON", r: "SS" }, { name: "幽玄ノ乱", r: "SS" }, { name: "Rough: CHA0Z", r: "SS" },
     { name: "!!!カオスタイム!!!", r: "地力S＋" }, { name: "†††カオスタイム the DARK†††", r: "地力S＋" }, { name: "Calamity Fortune", r: "地力S＋" }, { name: "業 -善なる神とこの世の悪について-", r: "地力S＋" }, { name: "最果の魔法使い", r: "地力S＋" }, { name: "siren's eye", r: "地力S＋" }, { name: "疾風怒濤", r: "地力S＋" }, { name: "Central Dogma Pt.1", r: "地力S＋" }, { name: "魑魅魍魎", r: "地力S＋" }, { name: "とける", r: "地力S＋" }, { name: "トロいか2000", r: "地力S＋" }, { name: "Vrykolakas", r: "地力S＋" }, { name: "ラ・モレーナ・クモナイ", r: "地力S＋" }, { name: "RAGING FIRE", r: "地力S＋" },
@@ -334,7 +336,7 @@ const activePlayer = gameConfig.players[draftPickerIndex];
 document.getElementById("gameStatusTitle").innerText = 【選曲フェーズ】${activePlayer.name}さん 曲を選んでください (${selectedSongs.length + 1}/${totalSongsToPlay}曲目);
 let html = <p style='text-align:center;'>必要な合計曲数: ${totalSongsToPlay}曲 / 現在選ばれた曲数: ${selectedSongs.length}曲</p><div class='song-pool'>;
 drawnSongs.forEach((song, idx) => {
-html += <div class="song-card" onclick="selectDraftSong(${idx})"><span class="badge">${song.rank}</span><br>${song.name} [${song.rank}]</div>;
+html += <div class="song-card" onclick="selectDraftSong(${idx})"><span class="badge">[${song.rank}]</span><br>${song.name}</div>;
 });
 html += </div>;
 document.getElementById("selectionArea").innerHTML = html;
@@ -382,7 +384,7 @@ const ryo = parseInt(document.getElementById(ryo_${i}).value) || 0;
 const ka = parseInt(document.getElementById(ka_${i}).value) || 0;
 const fuka = parseInt(document.getElementById(fuka_${i}).value) || 0;
 gameConfig.players[i].results.push({
-songName: ${selectedSongs[currentRound].name} [${selectedSongs[currentRound].rank}],
+songName: selectedSongs[currentRound].name,
 maxCombo: combo,
 ryo: ryo,
 ka: ka,
@@ -439,3 +441,11 @@ ${idx + 1}位
 	${p.name}
 	${p.displayScore}
 	${p.totalRyo}
+	${p.totalKa}
+	${p.totalFuka}
+
+もう一度遊ぶ
+`;
+document.getElementById("matchPlayArea").innerHTML = html;
+document.getElementById("actionBtn").style.display = "none";
+}
