@@ -184,10 +184,21 @@
         </div>
         <div class="form-group">
             <label>3. 勝敗の判定方法</label>
-            <select id="scoringRule">
+            <select id="scoringRule" onchange="togglePenaltyInputs()">
                 <option value="ratio">1. 良の割合(全体の割合で順位を決定)</option>
-                <option value="points">2. 可・不可の数(可:1pt, 不可:2ptの減点方式)</option>
+                <option value="points">2. 可・不可の数(カスタム減点方式)</option>
             </select>
+        </div>
+        <!-- 【新規】可・不可のポイントを自分で決める入力枠（初期状態は非表示） -->
+        <div id="penaltyPointsContainer" class="grid-2" style="display: none; margin-bottom: 20px;">
+            <div>
+                <label style="font-size:12px;">可の減点ポイント</label>
+                <input type="number" id="customKaPoint" value="1" min="0">
+            </div>
+            <div>
+                <label style="font-size:12px;">不可の減点ポイント</label>
+                <input type="number" id="customFukaPoint" value="2" min="0">
+            </div>
         </div>
         <div class="form-group">
             <label>4. ランダム選曲の方法</label>
@@ -197,18 +208,15 @@
             </select>
         </div>
         <div class="form-group">
-            <label>5. 難易度帯(全良難易度)の上限・下限</label>
-            <div class="grid-2">
-                <div>
-                    <label style="font-size:12px;">下限</label>
-                    <select id="diffMin"></select>
-                </div>
-                <div>
-                    <label style="font-size:12px;">上限</label>
-                    <select id="diffMax"></select>
-                </div>
+            <label>5. 対象にする難易度帯（複数選択可）</label>
+            <!-- 【新規】すべてチェック・外すボタン -->
+            <div style="margin-bottom: 10px;">
+                <button type="button" class="btn" onclick="checkAllRanks(true)" style="margin-top:0; margin-right:10px; padding:6px 12px; font-size:12px; background-color:#747d8c; width:auto;">すべてチェック</button>
+                <button type="button" class="btn" onclick="checkAllRanks(false)" style="margin-top:0; padding:6px 12px; font-size:12px; background-color:#747d8c; width:auto;">すべて外す</button>
             </div>
+            <div id="difficultyCheckboxContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; background: #f1f2f6; padding: 15px; border-radius: 8px;"></div>
         </div>
+
         <button class="btn" onclick="startTournament()">設定を確定して試合開始！</button>
     </div>
     <div id="gameSection" class="game-section">
@@ -232,77 +240,78 @@ const SONG_DATABASE = [
     {name: "Infinite Rebellion", rank: "SS"}, {name: "彁(裏)", rank: "SS"}, {name: "銀の黎明か、黒の晶華か。(裏)", rank: "SS"}, {name: "CRUXNAUT", rank: "SS"}, {name: "The Future of the 太鼓ドラム(裏)", rank: "SS"}, {name: "神竜 ～Shinryu～(裏)", rank: "SS"}, {name: "憎悪と醜悪の花束(裏)", rank: "SS"}, {name: "ダーク・エクス・マキナ♡", rank: "SS"}, {name: "ダーク・エクス・マキナ！", rank: "SS"}, {name: "第六天魔王(表)", rank: "SS"}, {name: "第六天魔王(裏)", rank: "SS"}, {name: "ダンガンノーツ(裏)", rank: "SS"}, {name: "Destination 2F29", rank: "SS"}, {name: "ドンカマ2000", rank: "SS"}, {name: "23時54分、陽の旅路へのプレリュード(裏)", rank: "SS"}, {name: "Vixtory(裏)", rank: "SS"}, {name: "vs.VIGVANGS(裏)", rank: "SS"}, {name: "poxei♦︎DOON", rank: "SS"}, {name: "幽玄ノ乱", rank: "SS"}, {name: "Rough: CHA0Z", rank: "SS"},
 
     // --- 地力 S+ ---
-    {name: "!!!カオスタイム!!!", rank: "地力S+"}, {name: "†††カオスタイム the DARK†††", rank: "地力S+"}, {name: "Calamity Fortune(裏)", rank: "地力S+"}, {name: "業 -善なる神とこの世の悪について-", rank: "地力S+"}, {name: "最果の魔法使い", rank: "地力S+"}, {name: "siren's eye", rank: "地力S+"}, {name: "疾風怒濤(裏)", rank: "地力S+"}, {name: "Central Dogma Pt.1(裏)", rank: "地力S+"}, {name: "魑魅魍魎", rank: "地力S+"}, {name: "とける(裏)", rank: "地力S+"}, {name: "トロいか2000", rank: "地力S+"}, {name: "Vrykolakas(裏)", rank: "地力S+"}, {name: "ラ・モレーナ・クモナイ", rank: "地力S+"}, {name: "RAGING FIRE", rank: "地力S+"},
+    {name: "!!!カオスタイム!!!", rank: "地力S+"}, {name: "†††カオスタイム the DARK†††", rank: "地力S+"}, {name: "Calamity Fortune(裏)", rank: "地力S+"}, {name: "業 -善なる神とこの世の悪について-(裏)", rank: "地力S+"}, {name: "最果の魔法使い(裏)", rank: "地力S+"}, {name: "siren's eye", rank: "地力S+"}, {name: "疾風怒濤(裏)", rank: "地力S+"}, {name: "Central Dogma Pt.1(裏)", rank: "地力S+"}, {name: "魑魅魍魎", rank: "地力S+"}, {name: "とける(裏)", rank: "地力S+"}, {name: "トロいか2000", rank: "地力S+"}, {name: "Vrykolakas(裏)", rank: "地力S+"}, {name: "ラ・モレーナ・クモナイ(裏)", rank: "地力S+"}, {name: "RAGING FIRE(裏)", rank: "地力S+"},
 
     // --- 個人差 S+ ---
-    {name: "アンリミテッドゲームズ(裏)", rank: "個人差S+"}, {name: "Emma【達人】", rank: "個人差S+"}, {name: "CUT! into the FUTURE(裏)", rank: "個人差S+"}, {name: "刻竜 ～Kokuryu～(裏)", rank: "個人差S+"}, {name: "!!!チルノのパーフェクトさんすうタイム!!!", rank: "個人差S+"}, {name: "まださいたま2000", rank: "個人差S+"}, {name: "4+1のそれぞれの未来(裏)", rank: "個人差S+"},
+    {name: "アンリミテッドゲームズ(裏)", rank: "個人差S+"}, {name: "Emma(裏)【達人】", rank: "個人差S+"}, {name: "CUT! into the FUTURE(裏)", rank: "個人差S+"}, {name: "刻竜 ～Kokuryu～(裏)", rank: "個人差S+"}, {name: "!!!チルノのパーフェクトさんすうタイム!!!", rank: "個人差S+"}, {name: "まださいたま2000", rank: "個人差S+"}, {name: "4+1のそれぞれの未来(裏)", rank: "個人差S+"},
 
     // --- 地力 S ---
-    {name: "オペレート・ミー", rank: "地力S"}, {name: "彁(表)", rank: "地力S"}, {name: "仮想現実のテレスコープ", rank: "地力S"}, {name: "Coquette", rank: "地力S"}, {name: "Synthesis.", rank: "地力S"}, {name: "スーハー2000", rank: "地力S"}, {name: "続・〆ドレー2000", rank: "地力S"}, {name: "そして勇者は眠りにつく", rank: "地力S"}, {name: "Taiko Drum Monster(裏)", rank: "地力S"}, {name: "Challengers", rank: "地力S"}, {name: "≠MM", rank: "地力S"}, {name: "Hurtling Boys", rank: "地力S"}, {name: "初音ミクの消失‐劇場版‐", rank: "地力S"}, {name: "星屑ストラック(裏)", rank: "地力S"}, {name: "魔宵月(裏)", rank: "地力S"}, {name: "Lightning Boys(裏)", rank: "地力S"}, {name: "LΔchesis", rank: "地力S"}, {name: "λ7708", rank: "地力S"}, {name: "わら得る2000", rank: "地力S"},
+    {name: "オペレート・ミー(裏)", rank: "地力S"}, {name: "彁(表)", rank: "地力S"}, {name: "仮想現実のテレスコープ(裏)", rank: "地力S"}, {name: "Coquette", rank: "地力S"}, {name: "Synthesis.(裏)", rank: "地力S"}, {name: "スーハー2000", rank: "地力S"}, {name: "続・〆ドレー2000", rank: "地力S"}, {name: "そして勇者は眠りにつく(裏)", rank: "地力S"}, {name: "Taiko Drum Monster(裏)", rank: "地力S"}, {name: "Challengers", rank: "地力S"}, {name: "≠MM", rank: "地力S"}, {name: "Hurtling Boys", rank: "地力S"}, {name: "初音ミクの消失‐劇場版‐(裏)", rank: "地力S"}, {name: "星屑ストラック(裏)", rank: "地力S"}, {name: "魔宵月(裏)", rank: "地力S"}, {name: "Lightning Boys(裏)", rank: "地力S"}, {name: "LΔchesis", rank: "地力S"}, {name: "λ7708", rank: "地力S"}, {name: "わら得る2000", rank: "地力S"},
 
     // --- 個人差 S ---
-    {name: "Xa", rank: "個人差S"}, {name: "Extreme End(裏)", rank: "個人差S"}, {name: "狂瀾怒濤", rank: "個人差S"}, {name: "氷竜 ～Kooryu～", rank: "個人差S"}, {name: "Genesis Ray", rank: "個人差S"}, {name: "双竜ノ乱(裏)", rank: "個人差S"}, {name: "たいこの2000", rank: "個人差S"}, {name: "チャーリー ダッシュ！", rank: "個人差S"}, {name: "Nivalis*Anima(裏)", rank: "個人差S"}, {name: "Nosferatu", rank: "個人差S"}, {name: "POLARiSNAUT", rank: "個人差S"}, {name: "UFO Swingin'", rank: "個人差S"}, {name: "マルトーアンフェール", rank: "個人差S"}, {name: "モノクロボイス(裏)", rank: "個人差S"},
+    {name: "Xa(裏)", rank: "個人差S"}, {name: "Extreme End(裏)", rank: "個人差S"}, {name: "狂瀾怒濤(裏)", rank: "個人差S"}, {name: "氷竜 ～Kooryu～(裏)", rank: "個人差S"}, {name: "Genesis Ray(裏)", rank: "個人差S"}, {name: "双竜ノ乱", rank: "個人差S"}, {name: "たいこの2000", rank: "個人差S"}, {name: "チャーリー ダッシュ！", rank: "個人差S"}, {name: "Nivalis*Anima(裏)", rank: "個人差S"}, {name: "Nosferatu(裏)", rank: "個人差S"}, {name: "POLARiSNAUT", rank: "個人差S"}, {name: "UFO Swingin'", rank: "個人差S"}, {name: "マルトーアンフェール(裏)", rank: "個人差S"}, {name: "モノクロボイス(裏)", rank: "個人差S"},
 
     // --- 地力 A+ ---
-    {name: "アムピト◇リーテー", rank: "地力A+"}, {name: "ln(guis・tics)", rank: "地力A+"}, {name: "ouroboros -twin stroke of the end-", rank: "地力A+"}, {name: "EXRiXiS", rank: "地力A+"}, {name: "χ談", rank: "地力A+"}, {name: "カラフル", rank: "地力A+"}, {name: "彼は誰時の誘惑", rank: "地力A+"}, {name: "ココドコ？多分ドッカ島！", rank: "地力A+"}, {name: "コネクトカラーズ", rank: "地力A+"}, {name: "GORI × GORI × SafaRI", rank: "地力A+"}, {name: "万戈イム－一ノ十", rank: "地力A+"}, {name: "青天の黎明", rank: "地力A+"}, {name: "Central Dogma Pt.2", rank: "地力A+"}, {name: "Taiko Drum Monster(表)", rank: "地力A+"}, {name: "DEBSTEP!", rank: "地力A+"}, {name: "Dreadnought", rank: "地力A+"}, {name: "Don't Stop the Game", rank: "地力A+"}, {name: "HARDCOREノ心得", rank: "地力A+"}, {name: "幕末維新譚", rank: "地力A+"}, {name: "†バチ!ムチ!?マッスルキングダム†", rank: "地力A+"}, {name: "バブル・リップ・レイヴ・マシン", rank: "地力A+"}, {name: "Hello, Worldooon!!", rank: "地力A+"}, {name: "パン vs ごはん！ 大決戦！【達人】(裏)", rank: "地力A+"}, {name: "ピッチフェイダ", rank: "地力A+"}, {name: "for Q", rank: "地力A+"}, {name: "プチポチ", rank: "地力A+"}, {name: "Behemoth", rank: "地力A+"}, {name: "まるくてはやくてすさまじいリズム", rank: "地力A+"}, {name: "モノクロームユートピア", rank: "地力A+"}, {name: "ラパスの虹", rank: "地力A+"}, {name: "resume:story", rank: "地力A+"}, {name: "Remnath", rank: "地力A+"},
+    {name: "アムピト◇リーテー", rank: "地力A+"}, {name: "ln(guis・tics)", rank: "地力A+"}, {name: "ouroboros -twin stroke of the end-", rank: "地力A+"}, {name: "EXRiXiS(裏)", rank: "地力A+"}, {name: "χ談", rank: "地力A+"}, {name: "カラフル", rank: "地力A+"}, {name: "彼は誰時の誘惑(裏)", rank: "地力A+"}, {name: "ココドコ？多分ドッカ島！(裏)", rank: "地力A+"}, {name: "コネクトカラーズ", rank: "地力A+"}, {name: "GORI × GORI × SafaRI(裏)", rank: "地力A+"}, {name: "万戈イム－一ノ十", rank: "地力A+"}, {name: "青天の黎明", rank: "地力A+"}, {name: "Central Dogma Pt.2", rank: "地力A+"}, {name: "Taiko Drum Monster(表)", rank: "地力A+"}, {name: "DEBSTEP!", rank: "地力A+"}, {name: "Dreadnought(裏)", rank: "地力A+"}, {name: "Don't Stop the Game", rank: "地力A+"}, {name: "HARDCOREノ心得", rank: "地力A+"}, {name: "幕末維新譚", rank: "地力A+"}, {name: "†バチ!ムチ!?マッスルキングダム†", rank: "地力A+"}, {name: "バブル・リップ・レイヴ・マシン", rank: "地力A+"}, {name: "Hello, Worldooon!!(裏)", rank: "地力A+"}, {name: "パン vs ごはん！ 大決戦！【達人】(裏)", rank: "地力A+"}, {name: "ピッチフェイダ(裏)", rank: "地力A+"}, {name: "for Q(裏)", rank: "地力A+"}, {name: "プチポチ", rank: "地力A+"}, {name: "Behemoth", rank: "地力A+"}, {name: "まるくてはやくてすさまじいリズム", rank: "地力A+"}, {name: "モノクロームユートピア", rank: "地力A+"}, {name: "ラパスの虹(裏)", rank: "地力A+"}, {name: "resume:story(裏)", rank: "地力A+"}, {name: "Remnath", rank: "地力A+"},
 
     // --- 個人差 A+ ---
-    {name: "赤と白薔薇の魔女", rank: "個人差A+"}, {name: "あめふりのロンド", rank: "個人差A+"}, {name: "Emma【玄人】", rank: "個人差A+"}, {name: "ON SAY GO SAY", rank: "個人差A+"}, {name: "カルメン 組曲一番終曲", rank: "個人差A+"}, {name: "銀の黎明か、黒の晶華か。(表)", rank: "個人差A+"}, {name: "さよならワーリャ", rank: "個人差A+"}, {name: "森羅万象", rank: "個人差A+"}, {name: "【双打】 双竜ノ乱", rank: "個人差A+"}, {name: "デッド・オア・ダイ", rank: "個人差A+"}, {name: "どんどこどんどこどんどこどんどこどんタスティック!!!", rank: "個人差A+"}, {name: "23時54分、陽の旅路へのプレリュード(表)", rank: "個人差A+"}, {name: "にゃーにゃーにゃー", rank: "個人差A+"}, {name: "メタナイトの逆襲メドレー", rank: "個人差A+"}, {name: "8OROCHI(裏)", rank: "個人差A+"},
+    {name: "赤と白薔薇の魔女", rank: "個人差A+"}, {name: "あめふりのロンド(裏)", rank: "個人差A+"}, {name: "Emma(裏)【玄人】", rank: "個人差A+"}, {name: "ON SAY GO SAY(裏)", rank: "個人差A+"}, {name: "カルメン 組曲一番終曲(裏)", rank: "個人差A+"}, {name: "銀の黎明か、黒の晶華か。(表)", rank: "個人差A+"}, {name: "さよならワーリャ(裏)", rank: "個人差A+"}, {name: "森羅万象", rank: "個人差A+"}, {name: "【双打】 双竜ノ乱", rank: "個人差A+"}, {name: "デッド・オア・ダイ", rank: "個人差A+"}, {name: "どんどこどんどこどんどこどんどこどんタスティック!!!(裏)", rank: "個人差A+"}, {name: "23時54分、陽の旅路へのプレリュード(表)", rank: "個人差A+"}, {name: "にゃーにゃーにゃー", rank: "個人差A+"}, {name: "メタナイトの逆襲メドレー(裏)", rank: "個人差A+"}, {name: "8OROCHI(裏)", rank: "個人差A+"}, {name: "HYPERNOVA(裏)", rank: "個人差A+"},
 
     // --- 地力 A ---
-    {name: "哀 want U", rank: "地力A"}, {name: "蒼鷺之火", rank: "地力A"}, {name: "或ル不和", rank: "地力A"}, {name: "VERTeX", rank: "地力A"}, {name: "美しく忙しきドナウ", rank: "地力A"}, {name: "ウルトラマンX", rank: "地力A"}, {name: "郢曲／暁闇", rank: "地力A"}, {name: "Agent Hustle & Dr. Hassle", rank: "地力A"}, {name: "GERBERA", rank: "地力A"}, {name: "CHAOTiC BATTLE", rank: "地力A"}, {name: "雲間を游ぐ", rank: "地力A"}, {name: "The Future of the 太鼓ドラム(表)", rank: "地力A"}, {name: "SAVAGE DELIGHT", rank: "地力A"}, {name: "〆ドレー2000", rank: "地力A"}, {name: "重金属フューギティブ", rank: "地力A"}, {name: "Xevel", rank: "地力A"}, {name: "其方、激昂", rank: "地力A"}, {name: "超絶技巧系少女", rank: "地力A"}, {name: "テトラリュトモスフォビア", rank: "地力A"}, {name: "天泣の律", rank: "地力A"}, {name: "転生〈TENSEI〉-喜与志が待つ強者-", rank: "地力A"}, {name: "Toon Town's Toys' Tune", rank: "地力A"}, {name: "ナイトメア・サバイバー(表)", rank: "地力A"}, {name: "BATTLE NO.1【達人】", rank: "地力A"}, {name: "Honey Heartbeat ～10 Stars Mix～", rank: "地力A"}, {name: "Parousia", rank: "地力A"}, {name: "パン vs ごはん！ 大決戦！【達人】(表)", rank: "地力A"}, {name: "vs.VIGVANGS(表)", rank: "地力A"}, {name: "魔宵月(表)", rank: "地力A"}, {name: "御石かくれ", rank: "地力A"}, {name: "Mood Swing", rank: "地力A"}, {name: "もぺもぺ", rank: "地力A"}, {name: "螺旋周回軌道", rank: "地力A"}, {name: "LECIEL GLISSANDO", rank: "地力A"}, {name: "LUNATiC CiRCUiT", rank: "地力A"}, {name: "冷凍庫CJ ～嗚呼面太鼓ブラザーズ～", rank: "地力A"},
+    {name: "哀 want U", rank: "地力A"}, {name: "蒼鷺之火(裏)", rank: "地力A"}, {name: "或ル不和", rank: "地力A"}, {name: "VERTeX", rank: "地力A"}, {name: "美しく忙しきドナウ(裏)", rank: "地力A"}, {name: "ウルトラマンX(裏)", rank: "地力A"}, {name: "郢曲／暁闇", rank: "地力A"},{name: "御石かくれ", rank: "地力A"}, {name: "Agent Hustle & Dr. Hassle", rank: "地力A"}, {name: "GERBERA", rank: "地力A"}, {name: "CHAOTiC BATTLE", rank: "地力A"}, {name: "雲間を游ぐ", rank: "地力A"}, {name: "The Future of the 太鼓ドラム(表)", rank: "地力A"}, {name: "SAVAGE DELIGHT", rank: "地力A"}, {name: "〆ドレー2000", rank: "地力A"}, {name: "重金属フューギティブ", rank: "地力A"}, {name: "Xevel", rank: "地力A"}, {name: "其方、激昂", rank: "地力A"}, {name: "超絶技巧系少女", rank: "地力A"}, {name: "テトラリュトモスフォビア", rank: "地力A"}, {name: "天泣の律", rank: "地力A"}, {name: "転生〈TENSEI〉-喜与志が待つ強者-(裏)", rank: "地力A"}, {name: "Toon Town's Toys' Tune", rank: "地力A"}, {name: "ナイトメア・サバイバー(裏)", rank: "地力A"}, {name: "BATTLE NO.1【達人】", rank: "地力A"}, {name: "Honey Heartbeat ～10 Stars Mix～(裏)", rank: "地力A"}, {name: "Parousia", rank: "地力A"}, {name: "パン vs ごはん！ 大決戦！【達人】(表)", rank: "地力A"}, {name: "vs.VIGVANGS(表)", rank: "地力A"}, {name: "魔宵月(表)", rank: "地力A"}, {name: "御石かくれ", rank: "地力A"}, {name: "Mood Swing(裏)", rank: "地力A"}, {name: "もぺもぺ", rank: "地力A"}, {name: "螺旋周回軌道(裏)", rank: "地力A"}, {name: "LECIEL GLISSANDO", rank: "地力A"}, {name: "LUNATiC CiRCUiT", rank: "地力A"}, {name: "冷凍庫CJ ～嗚呼面太鼓ブラザーズ～", rank: "地力A"},
     
     // --- 個人差 A ---
-    {name: "ARMAGEΔDON", rank: "個人差A"}, {name: "Unwelcome School (MRM REMIX)", rank: "個人差A"}, {name: "Irregular Clock", rank: "個人差A"}, {name: "EterNal Ring", rank: "個人差A"}, {name: "懐中庭園を持つ少女", rank: "個人差A"}, {name: "絡繰廻廊", rank: "個人差A"}, {name: "Caribbean Knight", rank: "個人差A"}, {name: "GIGALODOON(裏)", rank: "個人差A"}, {name: "鼓立あおはる学園校歌", rank: "個人差A"}, {name: "束ね糸", rank: "個人差A"}, {name: "チルノのパーフェクトさんすう教室 ⑨周年バージョン", rank: "個人差A"}, {name: "儚姫は原初に舞う(表)", rank: "個人差A"}, {name: "ひよこ鑑定士さん", rank: "個人差A"}, {name: "FLOWER", rank: "個人差A"}, {name: "BLAZING VORTEX", rank: "個人差A"}, {name: "Player's High", rank: "個人差A"},
+    {name: "ARMAGEΔDON", rank: "個人差A"}, {name: "Unwelcome School (MRM REMIX)(裏)", rank: "個人差A"}, {name: "Irregular Clock(裏)", rank: "個人差A"}, {name: "EterNal Ring", rank: "個人差A"}, {name: "懐中庭園を持つ少女", rank: "個人差A"}, {name: "絡繰廻廊", rank: "個人差A"}, {name: "Caribbean Knight", rank: "個人差A"}, {name: "GIGALODOON(裏)", rank: "個人差A"}, {name: "鼓立あおはる学園校歌", rank: "個人差A"}, {name: "束ね糸", rank: "個人差A"}, {name: "チルノのパーフェクトさんすう教室 ⑨周年バージョン", rank: "個人差A"}, {name: "儚姫は原初に舞う(裏)", rank: "個人差A"}, {name: "ひよこ鑑定士さん", rank: "個人差A"}, {name: "FLOWER(裏)", rank: "個人差A"}, {name: "BLAZING VORTEX(裏)", rank: "個人差A"}, {name: "Player's High", rank: "個人差A"},
 
     // --- 地力 B ---
-    {name: "ANiMA", rank: "地力B"}, {name: "Altale", rank: "地力B"}, {name: "Aleph-0", rank: "地力B"}, {name: "UNDEAD HEART(怒りのWarriors)", rank: "地力B"}, {name: "イオシス秋の爆食祭2024", rank: "地力B"}, {name: "怒槌(表)", rank: "地力B"}, {name: "OK I’m blue rat", rank: "地力B"}, {name: "KAGEKIYO(表)", rank: "地力B"}, {name: "CUT! into the FUTURE(表)", rank: "地力B"}, {name: "極圏", rank: "地力B"}, {name: "沓の子を打つ", rank: "地力B"}, {name: "クラポルポルスカ", rank: "地力B"}, {name: "Goldfish City", rank: "地力B"}, {name: "Got more raves?", rank: "地力B"}, {name: "秋竜 ～Shiuryu～", rank: "地力B"}, {name: "疾風怒濤(表)", rank: "地力B"}, {name: "承認欲Q", rank: "地力B"}, {name: "Singularity Game", rank: "地力B"}, {name: "晨星ト鵺", rank: "地力B"}, {name: "SUPERNOVA(表)", rank: "地力B"}, {name: "Stick Trick ShowTime!!", rank: "地力B"}, {name: "閃光天舞", rank: "地力B"}, {name: "SoulStone -闇喰イサァカス団-", rank: "地力B"}, {name: "SORA-VII シグナスウォール", rank: "地力B"}, {name: "月読命(表)", rank: "地力B"}, {name: "電脳幻夜の星言詠", rank: "地力B"}, {name: "トイマチック☆パレード!!", rank: "地力B"}, {name: "Doom Noiz", rank: "地力B"}, {name: "Nivalis*Anima(表)", rank: "地力B"}, {name: "Valsqotch", rank: "地力B"}, {name: "Hello, Mr.JOKER", rank: "地力B"}, {name: "人のお金で焼肉を食したい！", rank: "地力B"}, {name: "FUJIN Rumble", rank: "地力B"}, {name: "Help me, さいたま2000!!", rank: "地力B"}, {name: "またさいたま2000(表)", rank: "地力B"}, {name: "三瀬川乱舞", rank: "地力B"}, {name: "メカデス。", rank: "地力B"}, {name: "めためた☆ゆにば～すっ！", rank: "地力B"}, {name: "モノクロボイス(表)", rank: "地力B"}, {name: "Re：End of a Dream", rank: "地力B"}, {name: "竜と黒炎の姫君", rank: "地力B"}, {name: "練習曲Op.10-4", rank: "地力B"}, {name: "Rotter Tarmination(表)", rank: "地力B"}, {name: "六本の薔薇と采の歌", rank: "地力B"}, {name: "What's in the box?", rank: "地力B"},
+    {name: "ANiMA", rank: "地力B"}, {name: "Altale(裏)", rank: "地力B"}, {name: "Aleph-0", rank: "地力B"}, {name: "UNDEAD HEART(怒りのWarriors)", rank: "地力B"}, {name: "イオシス秋の爆食祭2024", rank: "地力B"}, {name: "怒槌", rank: "地力B"}, {name: "OK I’m blue rat", rank: "地力B"}, {name: "KAGEKIYO(裏)", rank: "地力B"}, {name: "CUT! into the FUTURE(表)", rank: "地力B"}, {name: "極圏", rank: "地力B"}, {name: "沓の子を打つ(裏)", rank: "地力B"}, {name: "クラポルポルスカ", rank: "地力B"}, {name: "Goldfish City", rank: "地力B"}, {name: "Got more raves?(裏)", rank: "地力B"}, {name: "秋竜 ～Shiuryu～(裏)", rank: "地力B"}, {name: "疾風怒濤(表)", rank: "地力B"}, {name: "承認欲Q", rank: "地力B"}, {name: "Singularity Game", rank: "地力B"}, {name: "晨星ト鵺", rank: "地力B"}, {name: "SUPERNOVA(裏)", rank: "地力B"}, {name: "Stick Trick ShowTime!!", rank: "地力B"}, {name: "閃光天舞", rank: "地力B"}, {name: "SoulStone -闇喰イサァカス団-", rank: "地力B"}, {name: "SORA-VII シグナスウォール", rank: "地力B"}, {name: "月読命", rank: "地力B"}, {name: "電脳幻夜の星言詠", rank: "地力B"}, {name: "トイマチック☆パレード!!", rank: "地力B"}, {name: "Doom Noiz", rank: "地力B"}, {name: "Nivalis*Anima(表)", rank: "地力B"}, {name: "Valsqotch", rank: "地力B"}, {name: "Hello, Mr.JOKER", rank: "地力B"}, {name: "人のお金で焼肉を食したい！(裏)", rank: "地力B"}, {name: "FUJIN Rumble", rank: "地力B"}, {name: "Help me, さいたま2000!!", rank: "地力B"}, {name: "またさいたま2000", rank: "地力B"}, {name: "三瀬川乱舞(裏)", rank: "地力B"}, {name: "メカデス。(裏)", rank: "地力B"}, {name: "めためた☆ゆにば～すっ！(裏)", rank: "地力B"}, {name: "モノクロボイス(表)", rank: "地力B"}, {name: "Re：End of a Dream(裏)", rank: "地力B"}, {name: "竜と黒炎の姫君(裏)", rank: "地力B"}, {name: "練習曲Op.10-4(裏)", rank: "地力B"}, {name: "Rotter Tarmination(裏)", rank: "地力B"}, {name: "六本の薔薇と采の歌(裏)", rank: "地力B"}, {name: "What's in the box?", rank: "地力B"},
 
     // --- 個人差 B ---
-    {name: "I am not Alice.", rank: "個人差B"}, {name: "暗殺者からトゥラッタッタ♪", rank: "個人差B"}, {name: "Aragami", rank: "個人差B"}, {name: "案山子姫 -Princess Scarecrow-", rank: "個人差B"}, {name: "Garakuta Doll Play(表)", rank: "個人差B"}, {name: "カラフルボイス", rank: "個人差B"}, {name: "Calculator", rank: "個人差B"}, {name: "気焔万丈神楽", rank: "個人差B"}, {name: "Kill My Fortune", rank: "個人差B"}, {name: "ゲゲゲの鬼太郎", rank: "個人差B"}, {name: "刻竜 ～Kokuryu～(表)", rank: "個人差B"}, {name: "神竜 ～Shinryu～(表)", rank: "個人差B"}, {name: "Scarlet Lance", rank: "個人差B"}, {name: "星河一天", rank: "個人差B"}, {name: "憎悪と醜悪の花束(表)", rank: "個人差B"}, {name: "Destr0yer", rank: "個人差B"}, {name: "ドドドドドンだフル！", rank: "個人差B"}, {name: "はたラク2000", rank: "個人差B"}, {name: "Vixtory(表)", rank: "個人差B"}, {name: "秘ナルメジェドノ悲ナル憂鬱", rank: "個人差B"}, {name: "メタルホーク BGM1", rank: "個人差B"}, {name: "memoria ficta", rank: "個人差B"}, {name: "YOU're our HEROES", rank: "個人差B"}, {name: "燎原ノ舞", rank: "個人差B"},
+    {name: "I am not Alice.", rank: "個人差B"}, {name: "あなたとトゥラッタッタ♪(裏)", rank: "個人差B"}, {name: "Aragami", rank: "個人差B"}, {name: "案山子姫 -Princess Scarecrow-(裏)", rank: "個人差B"}, {name: "Garakuta Doll Play(裏)", rank: "個人差B"}, {name: "カラフルボイス(裏)", rank: "個人差B"}, {name: "Calculator", rank: "個人差B"}, {name: "気焔万丈神楽", rank: "個人差B"}, {name: "Kill My Fortune(裏)", rank: "個人差B"}, {name: "ゲゲゲの鬼太郎(裏)", rank: "個人差B"}, {name: "刻竜 ～Kokuryu～(表)", rank: "個人差B"}, {name: "神竜 ～Shinryu～(表)", rank: "個人差B"}, {name: "Scarlet Lance", rank: "個人差B"}, {name: "星河一天", rank: "個人差B"}, {name: "憎悪と醜悪の花束(表)", rank: "個人差B"}, {name: "Destr0yer(裏)", rank: "個人差B"}, {name: "ドドドドドンだフル！(裏)", rank: "個人差B"}, {name: "はたラク2000", rank: "個人差B"}, {name: "Vixtory(表)", rank: "個人差B"}, {name: "秘ナルメジェドノ悲ナル憂鬱", rank: "個人差B"}, {name: "メタルホーク BGM1", rank: "個人差B"}, {name: "memoria ficta", rank: "個人差B"}, {name: "YOU're our HEROES", rank: "個人差B"}, {name: "燎原ノ舞", rank: "個人差B"},
 
     // --- 地力 C ---
-    {name: "愛と浄罪の森", rank: "地力C"}, {name: "アサガオ(表)", rank: "地力C"}, {name: "Abyss of hell", rank: "地力C"}, {name: "天照", rank: "地力C"}, {name: "Ignis Danse", rank: "地力C"}, {name: "Illusion Flare", rank: "地力C"}, {name: "When Enemies Collapse", rank: "地力C"}, {name: "うちゅうひこうし冒険譚", rank: "地力C"}, {name: "ex寅 Trap!!", rank: "地力C"}, {name: "Evidence of evil", rank: "地力C"}, {name: "活声ライクリフド", rank: "地力C"}, {name: "カラ鞠の花", rank: "地力C"}, {name: "ギガンティックO.T.N", rank: "地力C"}, {name: "きゅうくらりん", rank: "地力C"}, {name: "共奏鼓祭", rank: "地力C"}, {name: "クラシックメドレー（冬休み編）", rank: "地力C"}, {name: "Chronomia", rank: "地力C"}, {name: "弧", rank: "地力C"}, {name: "ゴーストマスク", rank: "地力C"}, {name: "ゴッドソング", rank: "地力C"}, {name: "God Ray", rank: "地力C"}, {name: "鼓舞曲「閻魔」", rank: "地力C"}, {name: "潮騒205号SSS線", rank: "地力C"}, {name: "紫煌ノ乱(表)", rank: "地力C"}, {name: "蛇鉄", rank: "地力C"}, {name: "須佐之男", rank: "地力C"}, {name: "Spectral Rider", rank: "地力C"}, {name: "Soulway【達人】", rank: "地力C"}, {name: "D′s Adventure Note", rank: "地力C"}, {name: "D絶対！SAMURAIインザレイン", rank: "地力C"}, {name: "てんぢく2000", rank: "地力C"}, {name: "弩蚊怒夏", rank: "地力C"}, {name: "とける(表)", rank: "地力C"}, {name: "Dogbite", rank: "地力C"}, {name: "Doppelgangers", rank: "地力C"}, {name: "HYPERNOVA", rank: "地力C"}, {name: "白鳥の湖", rank: "地力C"}, {name: "ハンロック", rank: "地力C"}, {name: "平等院鳳凰ドン vs 鳥獣戯カッ", rank: "地力C"}, {name: "Vrykolakas(表)", rank: "地力C"}, {name: "ヘイラ(表)", rank: "地力C"}, {name: "ヘイラ(にじさんじ)", rank: "地力C"}, {name: "ペットショップ大戦", rank: "地力C"}, {name: "MagiCatz", rank: "地力C"}, {name: "ミュージック・リボルバー", rank: "地力C"}, {name: "YOU're your HERO", rank: "地力C"}, {name: "六華の舞", rank: "地力C"}, {name: "wonderful ROUTINE", rank: "地力C"},
+    {name: "愛と浄罪の森", rank: "地力C"}, {name: "アサガオ", rank: "地力C"}, {name: "Abyss of hell(裏)", rank: "地力C"}, {name: "天照", rank: "地力C"}, {name: "Ignis Danse", rank: "地力C"}, {name: "Illusion Flare", rank: "地力C"}, {name: "When Enemies Collapse(裏)", rank: "地力C"}, {name: "うちゅうひこうし冒険譚", rank: "地力C"}, {name: "ex寅 Trap!!", rank: "地力C"}, {name: "Evidence of evil", rank: "地力C"}, {name: "活声ライクリフド", rank: "地力C"}, {name: "カラ鞠の花", rank: "地力C"}, {name: "ギガンティックO.T.N(裏)", rank: "地力C"}, {name: "きゅうくらりん(裏)", rank: "地力C"}, {name: "共奏鼓祭(裏)", rank: "地力C"}, {name: "クラシックメドレー（冬休み編）", rank: "地力C"}, {name: "Chronomia", rank: "地力C"}, {name: "弧", rank: "地力C"}, {name: "ゴーストマスク", rank: "地力C"}, {name: "ゴッドソング(裏)", rank: "地力C"}, {name: "God Ray", rank: "地力C"}, {name: "鼓舞曲「閻魔」", rank: "地力C"}, {name: "潮騒205号SSS線", rank: "地力C"}, {name: "紫煌ノ乱", rank: "地力C"}, {name: "蛇鉄", rank: "地力C"}, {name: "須佐之男", rank: "地力C"}, {name: "Spectral Rider", rank: "地力C"}, {name: "Soulway【達人】", rank: "地力C"}, {name: "D′s Adventure Note", rank: "地力C"}, {name: "D絶対！SAMURAIインザレイン(裏)", rank: "地力C"}, {name: "てんぢく2000", rank: "地力C"}, {name: "弩蚊怒夏", rank: "地力C"}, {name: "とける(表)", rank: "地力C"}, {name: "Dogbite", rank: "地力C"}, {name: "Doppelgangers(裏)", rank: "地力C"}, {name: "HYPERNOVA(表)", rank: "地力C"}, {name: "白鳥の湖(裏)", rank: "地力C"}, {name: "ハンロック", rank: "地力C"}, {name: "平等院鳳凰ドン vs 鳥獣戯カッ(裏)", rank: "地力C"}, {name: "Vrykolakas(表)", rank: "地力C"}, {name: "ヘイラ(裏)", rank: "地力C"}, {name: "ヘイラ(にじさんじ)(裏)", rank: "地力C"}, {name: "ペットショップ大戦", rank: "地力C"}, {name: "MagiCatz", rank: "地力C"}, {name: "ミュージック・リボルバー(裏)", rank: "地力C"}, {name: "YOU're your HERO", rank: "地力C"}, {name: "六華の舞", rank: "地力C"}, {name: "wonderful ROUTINE", rank: "地力C"},
 
     // --- 個人差 C ---
-    {name: "アンリミテッドゲームズ(表)", rank: "個人差C"}, {name: "あの日出会えたキセキ", rank: "個人差C"}, {name: "Gloria", rank: "個人差C"}, {name: "濃紅(表)", rank: "個人差C"}, {name: "濃紅(にじさんじ)", rank: "個人差C"}, {name: "ココロボ", rank: "個人差C"}, {name: "Central Dogma Pt.1(表)", rank: "個人差C"}, {name: "夏祭り / ジッタリン・ジン", rank: "個人差C"}, {name: "Purple Rose Fusion", rank: "個人差C"}, {name: "みんなのうた", rank: "個人差C"}, {name: "MEGALOVANIA", rank: "個人差C"}, {name: "4+1のそれぞれの未来(表)", rank: "個人差C"}, {name: "Lightning Boys(表)", rank: "個人差C"},
+    {name: "アンリミテッドゲームズ(表)", rank: "個人差C"}, {name: "あの日出会えたキセキ", rank: "個人差C"}, {name: "Gloria", rank: "個人差C"}, {name: "濃紅", rank: "個人差C"}, {name: "濃紅(にじさんじ)", rank: "個人差C"}, {name: "ココロボ", rank: "個人差C"}, {name: "Central Dogma Pt.1(表)", rank: "個人差C"}, {name: "夏祭り / ジッタリン・ジン(裏)", rank: "個人差C"}, {name: "Purple Rose Fusion", rank: "個人差C"}, {name: "みんなのうた", rank: "個人差C"}, {name: "MEGALOVANIA(裏)", rank: "個人差C"}, {name: "4+1のそれぞれの未来(表)", rank: "個人差C"}, {name: "Lightning Boys(表)", rank: "個人差C"},
 
     // --- 地力 D ---
-    {name: "アキバ20XX", rank: "地力D"}, {name: "Aloft in the wind", rank: "地力D"}, {name: "頂", rank: "地力D"}, {name: "イガク", rank: "地力D"}, {name: "INSPION", rank: "地力D"}, {name: "ウィーアー！", rank: "地力D"}, {name: "waitin' for u", rank: "地力D"}, {name: "Angel Halo", rank: "地力D"}, {name: "オーバード", rank: "地力D"}, {name: "オーブの祈り", rank: "地力D"}, {name: "Oshama Scramble!", rank: "地力D"}, {name: "GIGALODOON(表)", rank: "地力D"}, {name: "きたさいたま2000", rank: "地力D"}, {name: "キャラメル・ジャンキヰ", rank: "地力D"}, {name: "Surf Zapping", rank: "地力D"}, {name: "Silent Jealousy", rank: "地力D"}, {name: "セイクリッド ルイン", rank: "地力D"}, {name: "零の交響曲", rank: "地力D"}, {name: "そつおめしき2ばん", rank: "地力D"}, {name: "ZOMEKI THUNDER", rank: "地力D"}, {name: "十露盤2000(表)", rank: "地力D"}, {name: "Diving Drive", rank: "地力D"}, {name: "ダンガンノーツ(表)", rank: "地力D"}, {name: "天下統一録", rank: "地力D"}, {name: "ドドンガド～ン", rank: "地力D"}, {name: "鈍響ライクリフド", rank: "地力D"}, {name: "No Gravity", rank: "地力D"}, {name: "ノるどん2000(表)", rank: "地力D"}, {name: "VICTORIA", rank: "地力D"}, {name: "ピコピコ ルイン", rank: "地力D"}, {name: "VIVIVIVID", rank: "地力D"}, {name: "FREEDOM DiVE↓", rank: "地力D"}, {name: "Venomous", rank: "地力D"}, {name: "星屑ストラック(表)", rank: "地力D"}, {name: "8OROCHI(表)", rank: "地力D"}, {name: "YOAKE", rank: "地力D"}, {name: "夜桜謝肉祭(表)", rank: "地力D"}, {name: "ラヴ♡スパイス♡ライクユー!!!", rank: "地力D"}, {name: "Libera Ray", rank: "地力D"},
+    {name: "アキバ20XX", rank: "地力D"}, {name: "Aloft in the wind(裏)", rank: "地力D"}, {name: "頂", rank: "地力D"}, {name: "イガク(裏)", rank: "地力D"}, {name: "INSPION", rank: "地力D"}, {name: "ウィーアー！(裏)", rank: "地力D"}, {name: "waitin' for u", rank: "地力D"}, {name: "Angel Halo", rank: "地力D"}, {name: "オーバード(裏)", rank: "地力D"}, {name: "オーブの祈り", rank: "地力D"}, {name: "Oshama Scramble!(裏)", rank: "地力D"}, {name: "GIGALODOON(表)", rank: "地力D"}, {name: "きたさいたま2000", rank: "地力D"}, {name: "キャラメル・ジャンキヰ", rank: "地力D"}, {name: "Surf Zapping", rank: "地力D"}, {name: "Silent Jealousy(裏)", rank: "地力D"}, {name: "セイクリッド ルイン(裏)", rank: "地力D"}, {name: "零の交響曲(裏)", rank: "地力D"}, {name: "そつおめしき2ばん", rank: "地力D"}, {name: "ZOMEKI THUNDER", rank: "地力D"}, {name: "十露盤2000(表)", rank: "地力D"}, {name: "Diving Drive", rank: "地力D"}, {name: "ダンガンノーツ(表)", rank: "地力D"}, {name: "天下統一録", rank: "地力D"}, {name: "ドドンガド～ン(裏)", rank: "地力D"}, {name: "鈍響ライクリフド", rank: "地力D"}, {name: "No Gravity", rank: "地力D"}, {name: "ノるどん2000", rank: "地力D"}, {name: "VICTORIA", rank: "地力D"}, {name: "ピコピコ ルイン(裏)", rank: "地力D"}, {name: "VIVIVIVID", rank: "地力D"}, {name: "FREEDOM DiVE↓", rank: "地力D"}, {name: "Venomous(裏)", rank: "地力D"}, {name: "星屑ストラック(表)", rank: "地力D"}, {name: "8OROCHI(表)", rank: "地力D"}, {name: "YOAKE", rank: "地力D"}, {name: "夜桜謝肉祭(裏)", rank: "地力D"}, {name: "ラヴ♡スパイス♡ライクユー!!!", rank: "地力D"}, {name: "Libera Ray", rank: "地力D"},
 
     // --- 個人差 D ---
-    {name: "詩謳兎揺蕩兎", rank: "個人差D"}, {name: "UMAのフォーストレーニ千グ 【BPM150編】", rank: "個人差D"}, {name: "Extreme End(表)", rank: "個人差D"}, {name: "Emma【普通】", rank: "個人差D"}, {name: "【双打】 Garakuta Doll Play", rank: "個人差D"}, {name: "ゴーゴー・キッチン", rank: "個人差D"}, {name: "最終鬼畜妹フランドール・S", rank: "個人差D"}, {name: "タイコタイム", rank: "個人差D"}, {name: "乱数調整のリバースシンデレラ", rank: "個人差D"},
+    {name: "詩謳兎揺蕩兎", rank: "個人差D"}, {name: "UMAのフォーストレーニ千グ 【BPM150編】(裏)", rank: "個人差D"}, {name: "Extreme End(表)", rank: "個人差D"}, {name: "Emma(裏)【普通】", rank: "個人差D"}, {name: "【双打】 Garakuta Doll Play(裏)", rank: "個人差D"}, {name: "ゴーゴー・キッチン(裏)", rank: "個人差D"}, {name: "最終鬼畜妹フランドール・S", rank: "個人差D"}, {name: "タイコタイム(裏)", rank: "個人差D"}, {name: "乱数調整のリバースシンデレラ(裏)", rank: "個人差D"},
 
     // --- 地力 E ---
-    {name: "R.I.", rank: "地力E"}, {name: "蒼の旋律", rank: "地力E"}, {name: "朱の旋律", rank: "地力E"}, {name: "EkiBEN2000", rank: "地力E"}, {name: "Ka.Ma.Se", rank: "地力E"}, {name: "Kamikaze Remix", rank: "地力E"}, {name: "Calamity Fortune(表)", rank: "地力E"}, {name: "キューティー☆デモニック☆魔人エモ!!", rank: "地力E"}, {name: "【双打】 紅", rank: "地力E"}, {name: "さちさちにしてあげる♪", rank: "地力E"}, {name: "スーパーD&D ～完全にリードしてアイマイミー～", rank: "地力E"}, {name: "SUPERNOVA(裏)", rank: "地力E"}, {name: "SstTAarR*", rank: "地力E"}, {name: "Soulway【開幕普通】", rank: "地力E"}, {name: "タイコロール", rank: "地力E"}, {name: "タベルナ2000", rank: "地力E"}, {name: "儚姫は原初に舞う(裏)", rank: "地力E"}, {name: "BATTLE NO.1【玄人】", rank: "地力E"}, {name: "ヒバナ", rank: "地力E"}, {name: "Blessed Bouquet Buskers", rank: "地力E"}, {name: "よーいドン！", rank: "地力E"},
+    {name: "R.I.", rank: "地力E"}, {name: "蒼の旋律(裏)", rank: "地力E"}, {name: "朱の旋律", rank: "地力E"}, {name: "EkiBEN2000", rank: "地力E"}, {name: "Ka.Ma.Se(裏)", rank: "地力E"}, {name: "Kamikaze Remix", rank: "地力E"}, {name: "Calamity Fortune(表)", rank: "地力E"}, {name: "キューティー☆デモニック☆魔人エモ!!", rank: "地力E"}, {name: "【双打】 紅", rank: "地力E"}, {name: "さちさちにしてあげる♪(裏)", rank: "地力E"}, {name: "スーパーD&D ～完全にリードしてアイマイミー～", rank: "地力E"}, {name: "SUPERNOVA(裏)", rank: "地力E"}, {name: "SstTAarR*", rank: "地力E"}, {name: "Soulway【開幕普通】", rank: "地力E"}, {name: "タイコロール", rank: "地力E"}, {name: "タベルナ2000", rank: "地力E"}, {name: "儚姫は原初に舞う(裏)", rank: "地力E"}, {name: "BATTLE NO.1【玄人】", rank: "地力E"}, {name: "ヒバナ(裏)", rank: "地力E"}, {name: "Blessed Bouquet Buskers", rank: "地力E"}, {name: "よーいドン！", rank: "地力E"},
 
     // --- 個人差 E ---
-    {name: "開廷のフォーストレーニ千グ 【BPM240編】(表)", rank: "個人差E"}, {name: "開廷のフォーストレーニ千グ 【BPM240編】(裏)", rank: "個人差E"}, {name: "そつおめしき", rank: "個人差E"}, {name: "初音ミクの激唱(表)", rank: "個人差E"}, {name: "初音ミクの激唱(裏)", rank: "個人差E"}, {name: "パン vs ごはん！ 大決戦！(表)", rank: "個人差E"}, {name: "パン vs ごはん！ 大決戦！(裏)", rank: "個人差E"}, {name: "Black Rose Apostle(表)", rank: "個人差E"}, {name: "Black Rose Apostle(裏)", rank: "個人差E"}, {name: "マツヨイナイトバグ(表)", rank: "個人差E"},
+    {name: "UMAのフォーストレーニ千グ 【BPM240編】(表)", rank: "個人差E"}, {name: "UMAのフォーストレーニ千グ 【BPM240編】(裏)", rank: "個人差E"}, {name: "そつおめしき", rank: "個人差E"}, {name: "初音ミクの激唱(表)", rank: "個人差E"}, {name: "初音ミクの激唱(裏)", rank: "個人差E"}, {name: "パン vs ごはん！ 大決戦！(表)", rank: "個人差E"}, {name: "パン vs ごはん！ 大決戦！(裏)", rank: "個人差E"}, {name: "Black Rose Apostle(表)", rank: "個人差E"}, {name: "Black Rose Apostle(裏)", rank: "個人差E"}, {name: "マツヨイナイトバグ(裏)", rank: "個人差E"},
 
     // --- 地力 F ---
-    {name: "X-DAY2000", rank: "地力F"}, {name: "【双打】 KAGEKIYO", rank: "地力F"}, {name: "Clotho クロートー", rank: "地力F"}, {name: "旋風ノ舞【天】(表)", rank: "地力F"}, {name: "旋風ノ舞【天】(裏)", rank: "地力F"}, {name: "チルノのパーフェクトさんすう教室(表)", rank: "地力F"}, {name: "ネクロファンタジア ～ Arr.Demetori", rank: "地力F"}, {name: "拝啓ドッペルゲンガー", rank: "地力F"}, {name: "BATTLE NO.1【普通】", rank: "地力F"}, {name: "mint tears", rank: "地力F"}
+    {name: "X-DAY2000", rank: "地力F"}, {name: "【双打】 KAGEKIYO", rank: "地力F"}, {name: "Clotho クロートー", rank: "地力F"}, {name: "旋風ノ舞【天】(表)", rank: "地力F"}, {name: "旋風ノ舞【天】(裏)", rank: "地力F"}, {name: "チルノのパーフェクトさんすう教室(裏)", rank: "地力F"}, {name: "ネクロファンタジア ～ Arr.Demetori", rank: "地力F"}, {name: "拝啓ドッペルゲンガー", rank: "地力F"}, {name: "BATTLE NO.1【普通】", rank: "地力F"}, {name: "mint tears", rank: "地力F"}
 ];
 
 
 window.onload = function () {
-    const minSelect = document.getElementById("diffMin");
-    const maxSelect = document.getElementById("diffMax");
-    minSelect.innerHTML = "";
-    maxSelect.innerHTML = "";
-
+    const container = document.getElementById("difficultyCheckboxContainer");
+    container.innerHTML = "";
     
-    // 各難易度の曲数を自動で数えて選択肢（SS (13曲) など）を作る
-    DIFF_RANKS.forEach((rank, idx) => {
+    // 【修正】slice().reverse() を使って、元のデータを壊さずに「難しい順（SSから）」にしてループを回す
+    [...DIFF_RANKS].reverse().forEach((rank, idx) => {
         const count = SONG_DATABASE.filter(s => s.rank === rank || s.rank.replace("地力", "") === rank).length;
-        const optionText = `${rank} (${count}曲)`;
-        minSelect.add(new Option(optionText, idx));
-        maxSelect.add(new Option(optionText, idx));
+        
+        container.innerHTML += `
+            <label style="display: inline-flex; align-items: center; font-weight: normal; cursor: pointer; font-size: 14px;">
+                <input type="checkbox" name="diffCheck" value="${rank}" style="width: auto; margin-right: 6px;" checked>
+                ${rank} (${count}曲)
+            </label>
+        `;
     });
     
-    minSelect.value = 0;
-    maxSelect.value = DIFF_RANKS.length - 1;
     updatePlayerInputs();
 };
+
+
 
 function updatePlayerInputs() {
     const count = parseInt(document.getElementById("playerCount").value);
@@ -362,25 +371,33 @@ function startTournament() {
         });
     }
     
+    // プレイヤーを指定された手番（順番）通りに並び替える
     players.sort((a, b) => a.order - b.order);
     
-    const minIdx = parseInt(document.getElementById("diffMin").value);
-    const maxIdx = parseInt(document.getElementById("diffMax").value);
+    // 【新規】チェックが入っている難易度帯をすべて配列に集める
+    const checkboxes = document.getElementsByName("diffCheck");
+    let selectedRanks = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            selectedRanks.push(cb.value);
+        }
+    });
     
-    if (minIdx > maxIdx) {
-        alert("難易度の下限が上限を超えています！");
+    // 難易度が一つも選ばれていない場合は警告を出して止める
+    if (selectedRanks.length === 0) {
+        alert("難易度帯を最低1つは選択してください！");
         return;
     }
     
+    // 【新規】選択された難易度帯に合致する曲だけをデータベースから抽出
     filteredSongs = SONG_DATABASE.filter(song => {
         const cleanRank = song.rank.replace("地力", "");
-        let idx = DIFF_RANKS.indexOf(song.rank);
-        if (idx === -1) idx = DIFF_RANKS.indexOf(cleanRank);
-        return idx >= minIdx && idx <= maxIdx;
+        return selectedRanks.includes(song.rank) || selectedRanks.includes(cleanRank);
     });
     
+    // 該当する曲がデータベースに1曲もない場合の安全処理
     if (filteredSongs.length === 0) {
-        alert("選択された難易度帯の曲がデータベースにありません。範囲を広げてください。");
+        alert("選択された難易度帯の曲がデータベースにありません。範囲を見直してください。");
         return;
     }
     
@@ -403,6 +420,7 @@ function startTournament() {
         initNormalMode();
     }
 }
+
 
 function initDraftMode() {
     const poolSize = Math.ceil(totalSongsToPlay * 1.5);
@@ -478,24 +496,38 @@ function initMatchProgress() {
     const playerIndex = currentRound % gameConfig.players.length;
     const player = gameConfig.players[playerIndex];
 
+    // 入力欄を大きな文字で縦並びにするスタイル
     let html = `
-    <div class="match-block">
-        <p style="text-align:center; font-weight:bold; color:var(--primary-color); font-size:18px;">
+        ${gameConfig.selectionMethod === 'normal' ? `
+        <div style="text-align: center; margin-bottom: 15px;">
+            <button type="button" class="btn" onclick="redrawCurrentSong()" style="margin-top:0; padding:8px 16px; font-size:14px; background-color:var(--accent-color); width:auto;">🔄 この曲を引き直す</button>
+        </div>
+    ` : ''}
+    <div class="match-block" style="padding: 20px;">
+        <p style="text-align:center; font-weight:bold; color:var(--primary-color); font-size:20px; margin-bottom: 20px;">
             🔥 ${player.name} さんのプレイ番です 🔥
         </p>
-        <div class="player-input-row header-row">
-            <div>プレイヤー名</div>
-            <div>最大コンボ</div>
-            <div>良の数</div>
-            <div>可の数</div>
-            <div>不可の数</div>
-        </div>
-        <div class="player-input-row">
-            <div style="font-weight:bold;">${player.name}</div>
-            <div><input type="number" id="combo_${playerIndex}" placeholder="最大コンボ" min="1"></div>
-            <div><input type="number" id="ryo_${playerIndex}" placeholder="良" min="0"></div>
-            <div><input type="number" id="ka_${playerIndex}" placeholder="可" min="0"></div>
-            <div><input type="number" id="fuka_${playerIndex}" placeholder="不可" min="0"></div>
+        
+        <div style="max-width: 400px; margin: 0 auto;">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-size: 18px; color: #2ed573;">● 良の数</label>
+                <input type="number" id="ryo_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-size: 18px; color: #ffa502;">● 可の数</label>
+                <input type="number" id="ka_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-size: 18px; color: #ff4757;">● 不可の数</label>
+                <input type="number" id="fuka_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})">
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #fff; border: 2px dashed #ddd; border-radius: 8px; text-align: center;">
+                <span style="font-size: 14px; color: #555; font-weight: bold;">【自動計算】最大コンボ数</span>
+                <div id="autoComboDisplay_${playerIndex}" style="font-size: 28px; font-weight: bold; color: var(--dark-color); margin-top: 5px;">0</div>
+            </div>
         </div>
     </div>`;
     
@@ -506,16 +538,28 @@ function initMatchProgress() {
     btn.innerText = (currentRound === totalSongsToPlay - 1) ? "すべての結果を計算してリザルトへ" : "スコアを記録して次の曲へ";
 }
 
+// リアルタイムでコンボ数を画面上で自動計算して表示する関数
+function calculateAutoCombo(playerIndex) {
+    const ryo = parseInt(document.getElementById(`ryo_${playerIndex}`).value) || 0;
+    const ka = parseInt(document.getElementById(`ka_${playerIndex}`).value) || 0;
+    const fuka = parseInt(document.getElementById(`fuka_${playerIndex}`).value) || 0;
+    document.getElementById(`autoComboDisplay_${playerIndex}`).innerText = ryo + ka + fuka;
+}
+
+
 function handleGameAction() {
     const playerIndex = currentRound % gameConfig.players.length;
     
-    const combo = parseInt(document.getElementById(`combo_${playerIndex}`).value) || 0;
     const ryo = parseInt(document.getElementById(`ryo_${playerIndex}`).value) || 0;
     const ka = parseInt(document.getElementById(`ka_${playerIndex}`).value) || 0;
     const fuka = parseInt(document.getElementById(`fuka_${playerIndex}`).value) || 0;
     
-    if (combo !== (ryo + ka + fuka)) {
-        alert(`【入力エラー】\n最大コンボ数 (${combo}) と、各判定の合計数 (${ryo + ka + fuka}) が一致していません！\n数値を正しく見直してください。`);
+    // 良＋可＋不可を自動で最大コンボ数にする
+    const combo = ryo + ka + fuka;
+    
+    // 最低でも1個以上の入力（すべて0ではない状態）があるか確認
+    if (combo === 0) {
+        alert("数値を入力してください。");
         return;
     }
     
@@ -539,6 +583,7 @@ function handleGameAction() {
     }
 }
 
+
 function abortTournament() {
     if (confirm("本当にこの試合を中断して、最初の設定画面に戻りますか？\n（現在の記録はすべて消去されます）")) {
         location.reload();
@@ -549,6 +594,10 @@ function showFinalResults() {
     document.getElementById("gameStatusTitle").innerText = "🏆 最終リザルト発表 🏆";
     document.getElementById("selectionArea").innerHTML = "";
     
+    // 自分で設定した減点ポイントを読み込む（入力がなければ可1、不可2）
+    const customKa = parseInt(document.getElementById("customKaPoint").value) || 1;
+    const customFuka = parseInt(document.getElementById("customFukaPoint").value) || 2;
+    
     let scoredPlayers = gameConfig.players.map(player => {
         let totalRatioSum = 0, totalPenaltyPoints = 0;
         let totalRyo = 0, totalKa = 0, totalFuka = 0;
@@ -556,7 +605,10 @@ function showFinalResults() {
         
         player.results.forEach((res, index) => {
             totalRatioSum += (res.ryo / res.maxCombo) * 100;
-            totalPenaltyPoints += (res.ka * 1) + (res.fuka * 2);
+            
+            // 自分で決めたカスタム減点ポイントを掛け算する
+            totalPenaltyPoints += (res.ka * customKa) + (res.fuka * customFuka);
+            
             totalRyo += res.ryo;
             totalKa += res.ka;
             totalFuka += res.fuka;
@@ -625,6 +677,40 @@ function showFinalResults() {
     document.getElementById("matchPlayArea").innerHTML = html;
     document.getElementById("actionBtn").style.display = "none";
     document.getElementById("cancelBtn").style.display = "none";
+}
+
+// 判定方法が「可・不可の数」のときだけポイント入力枠を出す関数
+function togglePenaltyInputs() {
+    const rule = document.getElementById("scoringRule").value;
+    const container = document.getElementById("penaltyPointsContainer");
+    if (rule === "points") {
+        container.style.display = "grid";
+    } else {
+        container.style.display = "none";
+    }
+}
+
+// 【修正版】難易度チェックボックスを「すべてチェック / すべて外す」関数
+window.checkAllRanks = function(status) {
+    const checkboxes = document.getElementsByName("diffCheck");
+    checkboxes.forEach(cb => {
+        cb.checked = status;
+    });
+};
+
+// 【修正版】現在表示されている曲をアラート確認付きでランダムに引き直す関数
+function redrawCurrentSong() {
+    // 【新規】確認画面を出し、「キャンセル」が押されたらここで処理を終了する
+    if (!confirm("本当にこの曲を引き直しますか？\n（別のランダムな曲に切り替わります）")) {
+        return;
+    }
+    
+    // 「OK」が押された場合のみ、以下の引き直し処理が実行される
+    const randIdx = Math.floor(Math.random() * filteredSongs.length);
+    const newSong = filteredSongs[randIdx];
+    
+    selectedSongs[currentRound] = newSong;
+    initMatchProgress();
 }
 </script>
 </body>
