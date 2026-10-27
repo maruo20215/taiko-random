@@ -209,20 +209,19 @@ const DIFF_RANKS = [
     "個人差A", "A", "個人差A＋", "A＋", "個人差S", "S", "個人差S＋", "S＋", "SS"
 ];
 
-// スマホが絶対にフリーズしないようにスリム化した地力表データ
 const SONG_DATABASE = [
     { name: "Infinite Rebellion", rank: "SS" }, { name: "彁（裏）", rank: "SS" }, { name: "銀の黎明か、黒の晶華か。（裏）", rank: "SS" }, { name: "CRUXNAUT", rank: "SS" }, { name: "The Future of the 太鼓ドラム（裏）", rank: "SS" }, { name: "神竜 ～Shinryu～（裏）", rank: "SS" }, { name: "憎悪と醜悪の花束（裏）", rank: "SS" }, { name: "ダーク・エクス・マキナ♡", rank: "SS" }, { name: "第六天魔王（裏）", rank: "SS" }, { name: "ダンガンノーツ（裏）", rank: "SS" }, { name: "ドンカマ2000", rank: "SS" }, { name: "poxei♦︎DOON", rank: "SS" }, { name: "幽玄ノ乱", rank: "SS" },
     { name: "!!!カオスタイム!!!", rank: "地力S＋" }, { name: "†††カオスタイム the DARK†††", rank: "地力S＋" }, { name: "Calamity Fortune", rank: "地力S＋" }, { name: "業 -善なる神とこの世の悪について-", rank: "地力S＋" }, { name: "siren's eye", rank: "地力S＋" }, { name: "疾風怒濤", rank: "地力S＋" }, { name: "Central Dogma Pt.1", rank: "地力S＋" }, { name: "魑魅魍魎", rank: "地力S＋" }, { name: "とける（裏）", rank: "地力S＋" }, { name: "Vrykolakas（裏）", rank: "地力S＋" },
     { name: "アンリミテッドゲームズ（裏）", rank: "個人差S＋" }, { name: "Emma【達人】", rank: "個人差S＋" }, { name: "CUT! into the FUTURE（裏）", rank: "個人差S＋" }, { name: "刻竜 ～Kokuryu～（裏）", rank: "個人差S＋" }, { name: "まださいたま2000", rank: "個人差S＋" },
     { name: "オペレート・ミー", rank: "地力S" }, { name: "彁（表）", rank: "地力S" }, { name: "Coquette", rank: "地力S" }, { name: "スーハー2000", rank: "地力S" }, { name: "続・〆ドレー2000", rank: "地力S" }, { name: "Taiko Drum Monster（裏）", rank: "地力S" }, { name: "≠MM", rank: "地力S" }, { name: "Hurtling Boys", rank: "地力S" }, { name: "初音ミクの消失‐劇場版‐", rank: "地力S" }, { name: "星屑ストラック（裏）", rank: "地力S" }, { name: "魔宵月（裏）", rank: "地力S" }, { name: "Lightning Boys（裏）", rank: "地力S" }, { name: "わら得る2000", rank: "地力S" },
     { name: "Xa", rank: "個人差S" }, { name: "Extreme End（表）", rank: "個人差S" }, { name: "狂瀾怒濤", rank: "個人差S" }, { name: "双竜ノ乱（表）", rank: "個人差S" }, { name: "モノクロボイス（裏）", rank: "個人差S" },
-    { name: "アムピト♢リーテー", rank: "地力A＋" }, { name: "ouroboros -twin stroke of the end-", r: "地力A＋" }, { name: "EXRiXiS", rank: "地力A＋" }, { name: "カラフル", rank: "地力A＋" }, { name: "GORI × GORI × SafaRI", rank: "地力A＋" }, { name: "青天の黎明", rank: "地力A＋" }, { name: "Central Dogma Pt.2", rank: "地力A＋" }, { name: "Taiko Drum Monster（表）", rank: "地力A＋" }, { name: "Dreadnought", rank: "地力A＋" }, { name: "パン vs ごはん！ 大決戦！【達人】（裏）", rank: "地力A＋" },
+    { name: "アムピト♢リーテー", rank: "地力A＋" }, { name: "ouroboros -twin stroke of the end-", rank: "地力A＋" }, { name: "EXRiXiS", rank: "地力A＋" }, { name: "カラフル", rank: "地力A＋" }, { name: "GORI × GORI × SafaRI", rank: "地力A＋" }, { name: "青天の黎明", rank: "地力A＋" }, { name: "Central Dogma Pt.2", rank: "地力A＋" }, { name: "Taiko Drum Monster（表）", rank: "地力A＋" }, { name: "Dreadnought", rank: "地力A＋" }, { name: "パン vs ごはん！ 大決戦！【達人】（裏）", rank: "地力A＋" },
     { name: "赤と白薔薇の魔女", rank: "個人差A＋" }, { name: "Emma【玄人】", rank: "個人差A＋" }, { name: "銀の黎明か、黒の晶華か。（表）", rank: "個人差A＋" }, { name: "【双打】 双竜ノ乱", rank: "個人差A＋" }, { name: "デッド・オア・ダイ", rank: "個人差A＋" }, { name: "23時54分、陽の旅路へのプレリュード（表）", rank: "個人差A＋" }, { name: "8OROCHI（表）", rank: "個人差A＋" },
     { name: "哀 want U", rank: "地力A" }, { name: "VERTeX", rank: "地力A" }, { name: "The Future of the 太鼓ドラム（表）", rank: "地力A" }, { name: "SAVAGE DELIGHT", rank: "地力A" }, { name: "〆ドレー2000", rank: "地力A" }, { name: "Xevel", rank: "地力A" }, { name: "BATTLE NO.1【達人】", rank: "地力A" }, { name: "パン vs ごはん！ 大決戦！【達人】（表）", rank: "地力A" }, { name: "vs.VIGVANGS（表）", rank: "地力A" }, { name: "魔宵月（表）", rank: "地力A" }, { name: "もぺもぺ", rank: "地力A" }, { name: "冷凍庫CJ ～嗚呼面太鼓ブラザーズ～", rank: "地力A" },
     { name: "GIGALODOON（裏）", rank: "個人差A" }, { name: "チルノのパーフェクトさんすう教室 ⑨周年バージョン", rank: "個人差A" }, { name: "儚姫は原初に舞う（裏）", rank: "個人差A" }, { name: "FLOWER（表）", rank: "個人差A" },
     { name: "ANiMA", rank: "地力B" }, { name: "Altale", rank: "地力B" }, { name: "怒槌", rank: "地力B" }, { name: "KAGEKIYO", rank: "地力B" }, { name: "CUT! into the FUTURE（表）", rank: "地力B" }, { name: "極圏", rank: "地力B" }, { name: "Goldfish City", rank: "地力B" }, { name: "月読命", rank: "地力B" }, { name: "メカデス。", rank: "地力B" }, { name: "モノクロボイス（表）", rank: "地力B" }, { name: "Rotter Tarmination", rank: "地力B" }, { name: "またさいたま2000", rank: "地力B" },
     { name: "I am not Alice.", rank: "個人差B" }, { name: "Garakuta Doll Play（表）", rank: "個人差B" }, { name: "カラフルボイス", rank: "個人差B" }, { name: "刻竜 ～Kokuryu～（表）", rank: "個人差B" }, { name: "神竜 ～Shinryu～（表）", rank: "個人差B" }, { name: "憎悪と醜悪の花束（表）", rank: "個人差B" }, { name: "燎原ノ舞", rank: "個人差B" },
-    { name: "アサガオ", rank: "地力C" }, { name: "ギガンティックO.T.N", rank: "地力C" }, { name: "きゅうくらりん", r: "地力C" }, { name: "God Ray（表）", rank: "地力C" }, { name: "紫煌ノ乱", rank: "地力C" }, { name: "てんぢく2000", rank: "地力C" }, { name: "とける（表）", rank: "地力C" }, { name: "白鳥の湖", rank: "地力C" }, { name: "Vrykolakas（表）", rank: "地力C" }, { name: "ミュージック・リボルバー", rank: "地力C" },
+    { name: "アサガオ", rank: "地力C" }, { name: "ギガンティックO.T.N", rank: "地力C" }, { name: "きゅうくらりん", rank: "地力C" }, { name: "God Ray（表）", rank: "地力C" }, { name: "紫煌ノ乱", rank: "地力C" }, { name: "てんぢく2000", rank: "地力C" }, { name: "とける（表）", rank: "地力C" }, { name: "白鳥の湖", rank: "地力C" }, { name: "Vrykolakas（表）", rank: "地力C" }, { name: "ミュージック・リボルバー", rank: "地力C" },
     { name: "アンリミテッドゲームズ（表）", rank: "個人差C" }, { name: "Central Dogma Pt.1（表）", rank: "個人差C" }, { name: "夏祭り / ジッタリン・ジン", rank: "個人差C" }, { name: "MEGALOVANIA", rank: "個人差C" }, { name: "Lightning Boys（表）", rank: "個人差C" },
     { name: "イガク", rank: "地力D" }, { name: "ウィーアー！", rank: "地力D" }, { name: "GIGALODOON（表）", rank: "地力D" }, { name: "きたさいたま2000", rank: "地力D" }, { name: "そつおめしき2ばん", rank: "地力D" }, { name: "十露盤2000", rank: "地力D" }, { name: "ダンガンノーツ（表）", rank: "地力D" }, { name: "ノるどん2000", rank: "地力D" }, { name: "VICTORIA", rank: "地力D" }, { name: "VIVIVIVID", rank: "地力D" }, { name: "FREEDOM DiVE↓", rank: "地力D" }, { name: "星屑ストラック（表）", rank: "地力D" }, { name: "8OROCHI（表）", rank: "地力D" },
     { name: "Extreme End（表）", rank: "個人差D" }, { name: "Emma【普通】", rank: "個人差D" }, { name: "【双打】 Garakuta Doll Play", rank: "個人差D" }, { name: "タイコタイム", rank: "個人差D" },
@@ -230,27 +229,37 @@ const SONG_DATABASE = [
     { name: "そつおめしき", rank: "個人差E" }, { name: "初音ミクの激唱", rank: "個人差E" }, { name: "パン vs ごはん！ 大決戦！【普通】", rank: "個人差E" }, { name: "Black Rose Apostle", rank: "個人差E" }, { name: "マツヨイナイトバグ", rank: "個人差E" },
     { name: "X-DAY2000", rank: "地力F" }, { name: "【双打】 KAGEKIYO", rank: "地力F" }, { name: "旋風ノ舞【天】", rank: "地力F" }, { name: "チルノのパーフェクトさんすう教室", rank: "地力F" }, { name: "拝啓ドッペルゲンガー", rank: "地力F" }, { name: "BATTLE NO.1【普通】", rank: "地力F" }
 ];
+
 window.onload = function() {
-const minSelect = document.getElementById("diffMin");
-const maxSelect = document.getElementById("diffMax");
-minSelect.innerHTML = "";
-maxSelect.innerHTML = "";
-DIFF_RANKS.forEach((rank, idx) => {
-minSelect.add(new Option(rank, idx));
-maxSelect.add(new Option(rank, idx));
-});
-minSelect.value = 0;
-maxSelect.value = DIFF_RANKS.length - 1;
-updatePlayerInputs();
+    const minSelect = document.getElementById("diffMin");
+    const maxSelect = document.getElementById("diffMax");
+    minSelect.innerHTML = "";
+    maxSelect.innerHTML = "";
+    DIFF_RANKS.forEach((rank, idx) => {
+        minSelect.add(new Option(rank, idx));
+        maxSelect.add(new Option(rank, idx));
+    });
+    minSelect.value = 0;
+    maxSelect.value = DIFF_RANKS.length - 1;
+    updatePlayerInputs();
 };
+
 function updatePlayerInputs() {
-const count = parseInt(document.getElementById("playerCount").value);
-const container = document.getElementById("playerNamesContainer");
-container.innerHTML = "プレイヤー名と順番設定";
-for(let i=1; i<=count; i++) {
-container.innerHTML += <div class="form-group grid-2" style="margin-bottom:8px;"> <input type="text" id="pName${i}" value="Player ${i}"> <select id="pOrder${i}"> ${Array.from({length: count}, (_, k) =><option value="${k+1}" ${k+1===i?'selected':''}>${k+1}番手).join('')} </select> </div> ;
+    const count = parseInt(document.getElementById("playerCount").value);
+    const container = document.getElementById("playerNamesContainer");
+    container.innerHTML = "<label>プレイヤー名と順番設定</label>";
+    for(let i=1; i<=count; i++) {
+        container.innerHTML += `
+            <div class="form-group grid-2" style="margin-bottom:8px;">
+                <input type="text" id="pName${i}" value="Player ${i}">
+                <select id="pOrder${i}">
+                    ${Array.from({length: count}, (_, k) => `<option value="${k+1}" ${k+1===i?'selected':''}>${k+1}番手</option>`).join('')}
+                </select>
+            </div>
+        `;
+    }
 }
-}
+
 let gameConfig = {};
 let filteredSongs = [];
 let drawnSongs = [];
@@ -258,177 +267,213 @@ let selectedSongs = [];
 let currentRound = 0;
 let totalSongsToPlay = 0;
 let draftPickerIndex = 0;
+
 function startTournament() {
-const pCount = parseInt(document.getElementById("playerCount").value);
-let players = [];
-for(let i=1; i<=pCount; i++) {
-players.push({
-name: document.getElementById(pName${i}).value,
-order: parseInt(document.getElementById(pOrder${i}).value),
-results: []
-});
+    const pCount = parseInt(document.getElementById("playerCount").value);
+    let players = [];
+    for(let i=1; i<=pCount; i++) {
+        players.push({
+            name: document.getElementById(`pName${i}`).value,
+            order: parseInt(document.getElementById(`pOrder${i}`).value),
+            results: []
+        });
+    }
+    players.sort((a,b) => a.order - b.order);
+
+    const minIdx = parseInt(document.getElementById("diffMin").value);
+    const maxIdx = parseInt(document.getElementById("diffMax").value);
+    if(minIdx > maxIdx) {
+        alert("難易度の下限が上限を超えています！");
+        return;
+    }
+
+    filteredSongs = SONG_DATABASE.filter(song => {
+        const cleanRank = song.rank.replace("地力", "");
+        let idx = DIFF_RANKS.indexOf(song.rank);
+        if(idx === -1) idx = DIFF_RANKS.indexOf(cleanRank);
+        return idx >= minIdx && idx <= maxIdx;
+    });
+
+    if(filteredSongs.length === 0) {
+        alert("選択された難易度帯の曲がデータベースにありません。範囲を広げてください。");
+        return;
+    }
+
+    const songCountPerPlayer = parseInt(document.getElementById("songCount").value);
+    totalSongsToPlay = songCountPerPlayer * pCount;
+
+    gameConfig = {
+        players: players,
+        songCountPerPlayer: songCountPerPlayer,
+        scoringRule: document.getElementById("scoringRule").value,
+        selectionMethod: document.getElementById("selectionMethod").value
+    };
+
+    document.getElementById("setupSection").classList.remove("active");
+    document.getElementById("gameSection").classList.add("active");
+
+    if(gameConfig.selectionMethod === 'draft') {
+        initDraftMode();
+    } else {
+        initNormalMode();
+    }
 }
-players.sort((a,b) => a.order - b.order);
-const minIdx = parseInt(document.getElementById("diffMin").value);
-const maxIdx = parseInt(document.getElementById("diffMax").value);
-if(minIdx > maxIdx) {
-alert("難易度の下限が上限を超えています！");
-return;
-}
-filteredSongs = SONG_DATABASE.filter(song => {
-const cleanRank = song.rank.replace("地力", "");
-let idx = DIFF_RANKS.indexOf(song.rank);
-if(idx === -1) idx = DIFF_RANKS.indexOf(cleanRank);
-return idx >= minIdx && idx <= maxIdx;
-});
-if(filteredSongs.length === 0) {
-alert("選択された難易度帯の曲がデータベースにありません。範囲を広げてください。");
-return;
-}
-const songCountPerPlayer = parseInt(document.getElementById("songCount").value);
-totalSongsToPlay = songCountPerPlayer * pCount;
-gameConfig = {
-players: players,
-songCountPerPlayer: songCountPerPlayer,
-scoringRule: document.getElementById("scoringRule").value,
-selectionMethod: document.getElementById("selectionMethod").value
-};
-document.getElementById("setupSection").classList.remove("active");
-document.getElementById("gameSection").classList.add("active");
-if(gameConfig.selectionMethod === 'draft') {
-initDraftMode();
-} else {
-initNormalMode();
-}
-}
+
 function initDraftMode() {
-const poolSize = Math.ceil(totalSongsToPlay * 1.5);
-drawnSongs = [];
-let tempDb = [...filteredSongs];
-for(let i=0; i<poolSize; i++) {
-if(tempDb.length === 0) tempDb = [...filteredSongs];
-const randIdx = Math.floor(Math.random() * tempDb.length);
-drawnSongs.push(tempDb.splice(randIdx, 1)[0]);
+    const poolSize = Math.ceil(totalSongsToPlay * 1.5);
+    drawnSongs = [];
+    let tempDb = [...filteredSongs];
+    for(let i=0; i<poolSize; i++) {
+        if(tempDb.length === 0) tempDb = [...filteredSongs];
+        const randIdx = Math.floor(Math.random() * tempDb.length);
+        drawnSongs.push(tempDb.splice(randIdx, 1));
+    }
+    selectedSongs = [];
+    draftPickerIndex = 0; 
+    renderDraftScreen();
 }
-selectedSongs = [];
-draftPickerIndex = 0;
-renderDraftScreen();
-}
+
 function renderDraftScreen() {
-const activePlayer = gameConfig.players[draftPickerIndex];
-document.getElementById("gameStatusTitle").innerText = 【選曲フェーズ】${activePlayer.name}さん 曲を選んでください (${selectedSongs.length + 1}/${totalSongsToPlay}曲目);
-let html = <p style='text-align:center;'>必要な合計曲数: ${totalSongsToPlay}曲 / 現在選ばれた曲数: ${selectedSongs.length}曲</p><div class='song-pool'>;
-drawnSongs.forEach((song, idx) => {
-html += <div class="song-card" onclick="selectDraftSong(${idx})"><span class="badge">[${song.rank}]</span><br>${song.name}</div>;
-});
-html += </div>;
-document.getElementById("selectionArea").innerHTML = html;
-document.getElementById("matchPlayArea").innerHTML = "";
-document.getElementById("actionBtn").style.display = "none";
+    const activePlayer = gameConfig.players[draftPickerIndex];
+    document.getElementById("gameStatusTitle").innerText = `【選曲フェーズ】${activePlayer.name}さん 曲を選んでください (${selectedSongs.length + 1}/${totalSongsToPlay}曲目)`;
+    let html = `<p style='text-align:center;'>必要な合計曲数: ${totalSongsToPlay}曲 / 現在選ばれた曲数: ${selectedSongs.length}曲</p><div class='song-pool'>`;
+    drawnSongs.forEach((song, idx) => {
+        html += `<div class="song-card" onclick="selectDraftSong(${idx})"><span class="badge">[${song.rank}]</span><br>${song.name}</div>`;
+    });
+    html += `</div>`;
+    document.getElementById("selectionArea").innerHTML = html;
+    document.getElementById("matchPlayArea").innerHTML = "";
+    document.getElementById("actionBtn").style.display = "none";
 }
+
 function selectDraftSong(idx) {
-const song = drawnSongs.splice(idx, 1)[0];
-selectedSongs.push(song);
-if(selectedSongs.length < totalSongsToPlay) {
-draftPickerIndex = (draftPickerIndex + 1) % gameConfig.players.length;
-renderDraftScreen();
-} else {
-currentRound = 0;
-document.getElementById("selectionArea").innerHTML = "";
-initMatchProgress();
+    const song = drawnSongs.splice(idx, 1);
+    selectedSongs.push(song);
+    if(selectedSongs.length < totalSongsToPlay) {
+        draftPickerIndex = (draftPickerIndex + 1) % gameConfig.players.length;
+        renderDraftScreen();
+    } else {
+        currentRound = 0;
+        document.getElementById("selectionArea").innerHTML = "";
+        initMatchProgress();
+    }
 }
-}
+
 function initNormalMode() {
-selectedSongs = [];
-drawNextNormalSong();
+    selectedSongs = [];
+    drawNextNormalSong();
 }
+
 function drawNextNormalSong() {
-const randIdx = Math.floor(Math.random() * filteredSongs.length);
-selectedSongs.push(filteredSongs[randIdx]);
-initMatchProgress();
+    const randIdx = Math.floor(Math.random() * filteredSongs.length);
+    selectedSongs.push(filteredSongs[randIdx]);
+    initMatchProgress();
 }
+
 function initMatchProgress() {
-const currentSong = selectedSongs[currentRound];
-document.getElementById("gameStatusTitle").innerText = 第 ${currentRound + 1} / ${totalSongsToPlay} 楽曲：${currentSong.name} [${currentSong.rank}];
-let html = <div class="match-block"> <div class="player-input-row header-row"> <div>プレイヤー名</div> <div>最大コンボ</div> <div>良の数</div> <div>可の数</div> <div>不可の数</div> </div>;
-gameConfig.players.forEach((player, idx) => {
-html += <div class="player-input-row"> <div style="font-weight:bold;">${player.name}</div> <div><input type="number" id="combo_${idx}" value="700" min="1"></div> <div><input type="number" id="ryo_${idx}" value="680" min="0"></div> <div><input type="number" id="ka_${idx}" value="20" min="0"></div> <div><input type="number" id="fuka_${idx}" value="0" min="0"></div> </div>;
-});
-html += </div>;
-document.getElementById("matchPlayArea").innerHTML = html;
-const btn = document.getElementById("actionBtn");
-btn.style.display = "block";
-btn.innerText = (currentRound === totalSongsToPlay - 1) ? "すべての結果を計算してリザルトへ" : "スコアを記録して次の曲へ";
+    const currentSong = selectedSongs[currentRound];
+    document.getElementById("gameStatusTitle").innerText = `第 ${currentRound + 1} / ${totalSongsToPlay} 楽曲：${currentSong.name} [${currentSong.rank}]`;
+    let html = `<div class="match-block"> <div class="player-input-row header-row"> <div>プレイヤー名</div> <div>最大コンボ</div> <div>良の数</div> <div>可の数</div> <div>不可の数</div> </div>`;
+    gameConfig.players.forEach((player, idx) => {
+        html += `<div class="player-input-row"> <div style="font-weight:bold;">${player.name}</div> <div><input type="number" id="combo_${idx}" value="700" min="1"></div> <div><input type="number" id="ryo_${idx}" value="680" min="0"></div> <div><input type="number" id="ka_${idx}" value="20" min="0"></div> <div><input type="number" id="fuka_${idx}" value="0" min="0"></div> </div>`;
+    });
+    html += `</div>`;
+    document.getElementById("matchPlayArea").innerHTML = html;
+    const btn = document.getElementById("actionBtn");
+    btn.style.display = "block";
+    btn.innerText = (currentRound === totalSongsToPlay - 1) ? "すべての結果を計算してリザルトへ" : "スコアを記録して次の曲へ";
 }
+
 function handleGameAction() {
-for(let i=0; i<gameConfig.players.length; i++) {
-const combo = parseInt(document.getElementById(combo_${i}).value) || 1;
-const ryo = parseInt(document.getElementById(ryo_${i}).value) || 0;
-const ka = parseInt(document.getElementById(ka_${i}).value) || 0;
-const fuka = parseInt(document.getElementById(fuka_${i}).value) || 0;
-gameConfig.players[i].results.push({
-songName: selectedSongs[currentRound].name,
-maxCombo: combo,
-ryo: ryo,
-ka: ka,
-fuka: fuka
-});
+    for(let i=0; i<gameConfig.players.length; i++) {
+        const combo = parseInt(document.getElementById(`combo_${i}`).value) || 1;
+        const ryo = parseInt(document.getElementById(`ryo_${i}`).value) || 0;
+        const ka = parseInt(document.getElementById(`ka_${i}`).value) || 0;
+        const fuka = parseInt(document.getElementById(`fuka_${i}`).value) || 0;
+        gameConfig.players[i].results.push({
+            songName: selectedSongs[currentRound].name,
+            maxCombo: combo,
+            ryo: ryo,
+            ka: ka,
+            fuka: fuka
+        });
+    }
+    currentRound++;
+    if(currentRound < totalSongsToPlay) {
+        if(gameConfig.selectionMethod === 'normal') {
+            drawNextNormalSong();
+        } else {
+            initMatchProgress();
+        }
+    } else {
+        showFinalResults();
+    }
 }
-currentRound++;
-if(currentRound < totalSongsToPlay) {
-if(gameConfig.selectionMethod === 'normal') {
-drawNextNormalSong();
-} else {
-initMatchProgress();
-}
-} else {
-showFinalResults();
-}
-}
+
 function showFinalResults() {
-document.getElementById("gameStatusTitle").innerText = "🏆 最終リザルト発表 🏆";
-document.getElementById("selectionArea").innerHTML = "";
-let scoredPlayers = gameConfig.players.map(player => {
-let totalRatioSum = 0, totalPenaltyPoints = 0;
-let totalRyo = 0, totalKa = 0, totalFuka = 0;
-player.results.forEach(res => {
-totalRatioSum += (res.ryo / res.maxCombo) * 100;
-totalPenaltyPoints += (res.ka * 1) + (res.fuka * 2);
-totalRyo += res.ryo; totalKa += res.ka; totalFuka += res.fuka;
-});
-const finalScoreValue = (gameConfig.scoringRule === 'ratio') ? (totalRatioSum).toFixed(2) : totalPenaltyPoints;
-return {
-name: player.name,
-finalScoreValue: parseFloat(finalScoreValue),
-totalRyo: totalRyo, totalKa: totalKa, totalFuka: totalFuka,
-displayScore: (gameConfig.scoringRule === 'ratio') ? ${finalScoreValue}% : ${finalScoreValue} pt (減点)
-};
-});
-if(gameConfig.scoringRule === 'ratio') {
-scoredPlayers.sort((a,b) => b.finalScoreValue - a.finalScoreValue);
-} else {
-scoredPlayers.sort((a,b) => a.finalScoreValue - b.finalScoreValue);
-}
-let html = `
-; scoredPlayers.forEach((p, idx) => { html += 
-`;});
-html += `
+    document.getElementById("gameStatusTitle").innerText = "🏆 最終リザルト発表 🏆";
+    document.getElementById("selectionArea").innerHTML = "";
+    let scoredPlayers = gameConfig.players.map(player => {
+        let totalRatioSum = 0, totalPenaltyPoints = 0;
+        let totalRyo = 0, totalKa = 0, totalFuka = 0;
+        player.results.forEach(res => {
+            totalRatioSum += (res.ryo / res.maxCombo) * 100;
+            totalPenaltyPoints += (res.ka * 1) + (res.fuka * 2);
+            totalRyo += res.ryo;
+            totalKa += res.ka;
+            totalFuka += res.fuka;
+        });
+        const finalScoreValue = (gameConfig.scoringRule === 'ratio') ? (totalRatioSum).toFixed(2) : totalPenaltyPoints;
+        return {
+            name: player.name,
+            finalScoreValue: parseFloat(finalScoreValue),
+            totalRyo: totalRyo,
+            totalKa: totalKa,
+            totalFuka: totalFuka,
+            displayScore: (gameConfig.scoringRule === 'ratio') ? `${finalScoreValue}%` : `${finalScoreValue} pt (減点)`
+        };
+    });
 
-順位
-	プレイヤー名
-	判定基準スコア
-	総良
-	総可
-	総不可
-${idx + 1}位
-	${p.name}
-	${p.displayScore}
-	${p.totalRyo}
-	${p.totalKa}
-	${p.totalFuka}
+    if (gameConfig.scoringRule === 'ratio') {
+        scoredPlayers.sort((a, b) => b.finalScoreValue - a.finalScoreValue);
+    } else {
+        scoredPlayers.sort((a, b) => a.finalScoreValue - b.finalScoreValue);
+    }
 
-もう一度遊ぶ
-`;
-document.getElementById("matchPlayArea").innerHTML = html;
-document.getElementById("actionBtn").style.display = "none";
+    let html = `
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>順位</th>
+                    <th>プレイヤー名</th>
+                    <th>判定基準スコア</th>
+                    <th>総良</th>
+                    <th>総可</th>
+                    <th>総不可</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    scoredPlayers.forEach((p, idx) => {
+        html += `
+            <tr class="rank-${idx + 1}">
+                <td>${idx + 1}位</td>
+                <td>${p.name}</td>
+                <td>${p.displayScore}</td>
+                <td>${p.totalRyo}</td>
+                <td>${p.totalKa}</td>
+                <td>${p.totalFuka}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+        <button class="btn btn-accent" onclick="location.reload()">もう一度遊ぶ</button>
+    `;
+
+    document.getElementById("matchPlayArea").innerHTML = html;
+    document.getElementById("actionBtn").style.display = "none";
 }
