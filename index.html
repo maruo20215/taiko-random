@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>太鼓の達人 ★10地力表ランダム選曲</title>
+    <title>太鼓の達人 ★10ランダム選曲</title>
     <style>
         :root {
             --bg-color: #f7f9fa;
@@ -158,7 +158,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>太鼓の達人 ★10地力表ランダム選曲</h1>
+    <h1>太鼓の達人 ★10ランダム選曲</h1>
     <div id="setupSection" class="setup-section active">
         <div class="form-group">
             <label>1. プレイ人数 (1~4人)</label>
@@ -208,7 +208,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label>5. 対象にする難易度帯（複数選択可）</label>
+            <label>5. 対象にする難易度帯</label>
             <!-- 【新規】すべてチェック・外すボタン -->
             <div style="margin-bottom: 10px;">
                 <button type="button" class="btn" onclick="checkAllRanks(true)" style="margin-top:0; margin-right:10px; padding:6px 12px; font-size:12px; background-color:#747d8c; width:auto;">すべてチェック</button>
@@ -594,29 +594,40 @@ function showFinalResults() {
     document.getElementById("gameStatusTitle").innerText = "🏆 最終リザルト発表 🏆";
     document.getElementById("selectionArea").innerHTML = "";
     
-    // 自分で設定した減点ポイントを読み込む（入力がなければ可1、不可2）
     const customKa = parseInt(document.getElementById("customKaPoint").value) || 1;
     const customFuka = parseInt(document.getElementById("customFukaPoint").value) || 2;
     
     let scoredPlayers = gameConfig.players.map(player => {
         let totalRatioSum = 0, totalPenaltyPoints = 0;
         let totalRyo = 0, totalKa = 0, totalFuka = 0;
-        let detailsHtml = '<div class="song-history"><strong>【プレイ曲の内訳】</strong><br>';
+        
+        let rowsArray = [];
         
         player.results.forEach((res, index) => {
             totalRatioSum += (res.ryo / res.maxCombo) * 100;
-            
-            // 自分で決めたカスタム減点ポイントを掛け算する
             totalPenaltyPoints += (res.ka * customKa) + (res.fuka * customFuka);
-            
             totalRyo += res.ryo;
             totalKa += res.ka;
             totalFuka += res.fuka;
             
             const songRatio = ((res.ryo / res.maxCombo) * 100).toFixed(2);
-            detailsHtml += `・${res.songName} : 良 ${res.ryo} / 可 ${res.ka} / 不可 ${res.fuka} (${songRatio}%)<br>`;
+            
+            // 【バグ完全修正】曲名（res.songName）をキーにして、巨大データベース（SONG_DATABASE）から直接正しい難易度を引っ張ってくる処理に変更
+            let songRank = "-";
+            const targetSong = SONG_DATABASE.find(s => s.name === res.songName);
+            if (targetSong) {
+                songRank = targetSong.rank;
+            }
+            
+            rowsArray.push(`
+                <td>${res.songName}</td>
+                <td><span class="badge">[${songRank}]</span></td>
+                <td>${songRatio}%</td>
+                <td>${res.ryo}</td>
+                <td>${res.ka}</td>
+                <td>${res.fuka}</td>
+            `);
         });
-        detailsHtml += '</div>';
         
         const finalScoreValue = (gameConfig.scoringRule === 'ratio') ? 
             (totalRatioSum / gameConfig.songCountPerPlayer).toFixed(2) : totalPenaltyPoints;
@@ -630,7 +641,8 @@ function showFinalResults() {
             totalKa: totalKa,
             totalFuka: totalFuka,
             displayScore: displayScore,
-            detailsHtml: detailsHtml
+            playCount: player.results.length,
+            rowsArray: rowsArray
         };
     });
     
@@ -640,6 +652,7 @@ function showFinalResults() {
         scoredPlayers.sort((a, b) => a.finalScoreValue - b.finalScoreValue);
     }
     
+    // ① 総合順位表（スッキリ版）
     let html = `
     <table class="result-table">
         <thead>
@@ -658,25 +671,85 @@ function showFinalResults() {
         html += `
         <tr class="rank-${idx + 1}">
             <td>${idx + 1}位</td>
-            <td>
-                <strong>${p.name}</strong>
-                ${p.detailsHtml}
-            </td>
+            <td><strong>${p.name}</strong></td>
             <td>${p.displayScore}</td>
             <td>${p.totalRyo}</td>
             <td>${p.totalKa}</td>
             <td>${p.totalFuka}</td>
         </tr>`;
     });
+    html += `</tbody></table>`;
     
+    // ② 横長の詳細テーブル
+    let detailTableHtml = `
+    <div id="detailScoreSection" style="display: none; margin-top: 20px; overflow-x: auto;">
+        <h3 style="text-align:center; margin-bottom:15px; color:var(--dark-color);">📊 全楽曲・プレイ詳細リザルト</h3>
+        <table class="result-table" style="font-size:13px; width:100%;">
+            <thead>
+                <tr>
+                    <th>プレイヤー</th>
+                    <th>曲名</th>
+                    <th>難易度帯</th>
+                    <th>良の割合</th>
+                    <th>良</th>
+                    <th>可</th>
+                    <th>不可</th>
+                    <th>全体の良</th>
+                    <th>全体の可</th>
+                    <th>全体の不可</th>
+                </tr>
+            </thead>
+            <tbody>`;
+            
+    scoredPlayers.forEach(p => {
+        p.rowsArray.forEach((songCells, i) => {
+            if (i === 0) {
+                detailTableHtml += `
+                <tr>
+                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#f9f9f9; vertical-align:middle;">${p.name}</td>
+                    ${songCells}
+                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#fff200; vertical-align:middle;">${p.totalRyo}</td>
+                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#ffeaa7; vertical-align:middle;">${p.totalKa}</td>
+                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#ffccd5; vertical-align:middle;">${p.totalFuka}</td>
+                </tr>`;
+            } else {
+                detailTableHtml += `
+                <tr>
+                    ${songCells}
+                </tr>`;
+            }
+        });
+    });
+    
+    detailTableHtml += `</tbody></table></div>`;
+    html += detailTableHtml;
+    
+    // ③ ボタンエリア
     html += `
-        </tbody>
-    </table>
-    <button class="btn btn-accent" onclick="location.reload()" style="margin-top:20px;">もう一度遊ぶ</button>`;
+    <div style="text-align: center; margin-top: 25px;">
+        <button class="btn" id="toggleDetailBtn" onclick="toggleDetailScoreTable()" style="background-color: var(--accent-color); width: auto; padding: 10px 24px; font-size: 15px; margin-top: 0; margin-bottom: 15px;">🔍 詳細なリザルトを表示</button>
+        <br>
+        <button class="btn btn-accent" onclick="location.reload()" style="width: auto; padding: 12px 30px; font-size: 16px; margin-top: 0;">🔄 もう一度遊ぶ</button>
+    </div>`;
     
     document.getElementById("matchPlayArea").innerHTML = html;
     document.getElementById("actionBtn").style.display = "none";
     document.getElementById("cancelBtn").style.display = "none";
+}
+
+function toggleDetailScoreTable() {
+    const section = document.getElementById("detailScoreSection");
+    const btn = document.getElementById("toggleDetailBtn");
+    
+    if (section.style.display === "none") {
+        section.style.display = "block";
+        btn.innerText = "❌ 詳細を閉じる";
+        btn.style.backgroundColor = "#747d8c";
+    } else {
+        section.style.display = "none";
+        btn.innerText = "🔍 詳細を表示";
+        btn.style.backgroundColor = "var(--accent-color)";
+    }
 }
 
 // 判定方法が「可・不可の数」のときだけポイント入力枠を出す関数
