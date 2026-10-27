@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -154,6 +154,20 @@
             margin-top: 5px;
             font-weight: normal;
         }
+        
+        /* 【新規】ライフ点滅アニメーション用のCSS */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.1; }
+            100% { opacity: 1; }
+        }
+        .life-blink {
+            animation: blink 0.6s infinite;
+        }
+        /* ライフゲージが減るときに、アニメーションでシュッと滑らかに縮むようにする設定 */
+        .match-block + div div {
+            transition: width 0.3s ease;
+　　  　}
     </style>
 </head>
 <body>
@@ -170,7 +184,9 @@
             </select>
         </div>
         <div id="playerNamesContainer"></div>
-        <div class="form-group">
+        
+        <!-- 【修正】曲数制限は「勝敗ルール」によって変化させるため、枠を設けておきます -->
+        <div class="form-group" id="songCountFormGroup">
             <label>2. 1人あたりのプレイ曲数(1~7曲)</label>
             <select id="songCount">
                 <option value="1">1曲</option>
@@ -182,14 +198,17 @@
                 <option value="7">7曲</option>
             </select>
         </div>
+        
         <div class="form-group">
             <label>3. 勝敗の判定方法</label>
-            <select id="scoringRule" onchange="togglePenaltyInputs()">
+            <select id="scoringRule" onchange="toggleScoringRuleOptions()">
                 <option value="ratio">1. 良の割合(全体の割合で順位を決定)</option>
                 <option value="points">2. 可・不可の数(カスタム減点方式)</option>
+                <option value="bomb">3. 爆弾ルール(ライフサバイバル方式)</option>
             </select>
         </div>
-        <!-- 【新規】可・不可のポイントを自分で決める入力枠（初期状態は非表示） -->
+        
+        <!-- 可・不可のカスタム減点ポイント設定枠 -->
         <div id="penaltyPointsContainer" class="grid-2" style="display: none; margin-bottom: 20px;">
             <div>
                 <label style="font-size:12px;">可の減点ポイント</label>
@@ -200,6 +219,32 @@
                 <input type="number" id="customFukaPoint" value="2" min="0">
             </div>
         </div>
+
+        <!-- 【新規】爆弾ルール専用のライフ・シークレット設定枠 -->
+        <div id="bombRuleContainer" style="display: none; background: #fff3f3; padding: 15px; border-radius: 8px; border: 1px solid #ffcccc; margin-bottom: 20px;">
+            <div class="form-group">
+                <label style="font-size:14px; color:#d63031;">💣 爆弾モード設定</label>
+                <select id="bombMode" onchange="toggleBombSecretMode()">
+                    <option value="normal">通常爆弾 (ライフ指定)</option>
+                    <option value="secret">シークレット爆弾 (ライフが30～100のランダム)</option>
+                </select>
+            </div>
+            <div id="bombInitialLifeGroup" class="form-group">
+                <label style="font-size:12px;">初期ライフ数</label>
+                <input type="number" id="bombInitialLife" value="100" min="1">
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label style="font-size:12px;">可1つによるダメージ</label>
+                    <input type="number" id="bombKaDamage" value="1" min="0">
+                </div>
+                <div>
+                    <label style="font-size:12px;">不可1つによるダメージ</label>
+                    <input type="number" id="bombFukaDamage" value="2" min="0">
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>4. ランダム選曲の方法</label>
             <select id="selectionMethod">
@@ -208,15 +253,13 @@
             </select>
         </div>
         <div class="form-group">
-            <label>5. 対象にする難易度帯</label>
-            <!-- 【新規】すべてチェック・外すボタン -->
+            <label>5. 対象にする難易度帯（複数選択可）</label>
             <div style="margin-bottom: 10px;">
                 <button type="button" class="btn" onclick="checkAllRanks(true)" style="margin-top:0; margin-right:10px; padding:6px 12px; font-size:12px; background-color:#747d8c; width:auto;">すべてチェック</button>
                 <button type="button" class="btn" onclick="checkAllRanks(false)" style="margin-top:0; padding:6px 12px; font-size:12px; background-color:#747d8c; width:auto;">すべて外す</button>
             </div>
             <div id="difficultyCheckboxContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; background: #f1f2f6; padding: 15px; border-radius: 8px;"></div>
         </div>
-
         <button class="btn" onclick="startTournament()">設定を確定して試合開始！</button>
     </div>
     <div id="gameSection" class="game-section">
@@ -295,11 +338,8 @@ const SONG_DATABASE = [
 window.onload = function () {
     const container = document.getElementById("difficultyCheckboxContainer");
     container.innerHTML = "";
-    
-    // 【修正】slice().reverse() を使って、元のデータを壊さずに「難しい順（SSから）」にしてループを回す
-    [...DIFF_RANKS].reverse().forEach((rank, idx) => {
+    [...DIFF_RANKS].reverse().forEach((rank) => {
         const count = SONG_DATABASE.filter(s => s.rank === rank || s.rank.replace("地力", "") === rank).length;
-        
         container.innerHTML += `
             <label style="display: inline-flex; align-items: center; font-weight: normal; cursor: pointer; font-size: 14px;">
                 <input type="checkbox" name="diffCheck" value="${rank}" style="width: auto; margin-right: 6px;" checked>
@@ -307,11 +347,13 @@ window.onload = function () {
             </label>
         `;
     });
-    
     updatePlayerInputs();
 };
 
-
+window.checkAllRanks = function(status) {
+    const checkboxes = document.getElementsByName("diffCheck");
+    checkboxes.forEach(cb => { cb.checked = status; });
+};
 
 function updatePlayerInputs() {
     const count = parseInt(document.getElementById("playerCount").value);
@@ -320,36 +362,42 @@ function updatePlayerInputs() {
         <label>プレイヤー名と順番設定</label>
         <button type="button" class="btn" onclick="randomizeOrder()" style="margin-top:0; margin-bottom:10px; padding:6px 12px; font-size:12px; background-color:var(--accent-color); width:auto;">順番をランダムに決める</button>
     `;
-    
     for (let i = 1; i <= count; i++) {
         let options = "";
         for (let k = 1; k <= count; k++) {
             options += `<option value="${k}" ${k === i ? 'selected' : ''}>${k}番手</option>`;
         }
-        
         container.innerHTML += `
         <div class="form-group grid-2" style="margin-bottom:8px;">
             <input type="text" id="pName${i}" value="Player ${i}">
-            <select id="pOrder${i}">
-                ${options}
-            </select>
+            <select id="pOrder${i}">${options}</select>
         </div>`;
     }
 }
 
-// 順番をランダムに決める機能
 function randomizeOrder() {
     const count = parseInt(document.getElementById("playerCount").value);
     let orders = Array.from({length: count}, (_, i) => i + 1);
-    
     for (let i = orders.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [orders[i], orders[j]] = [orders[j], orders[i]];
     }
-    
     for (let i = 1; i <= count; i++) {
         document.getElementById(`pOrder${i}`).value = orders[i - 1];
     }
+}
+
+// 判定方法の選択に応じて、設定画面の表示を切り替える
+function toggleScoringRuleOptions() {
+    const rule = document.getElementById("scoringRule").value;
+    document.getElementById("penaltyPointsContainer").style.display = (rule === "points") ? "grid" : "none";
+    document.getElementById("bombRuleContainer").style.display = (rule === "bomb") ? "block" : "none";
+    document.getElementById("songCountFormGroup").style.display = (rule === "bomb") ? "none" : "block";
+}
+
+function toggleBombSecretMode() {
+    const mode = document.getElementById("bombMode").value;
+    document.getElementById("bombInitialLifeGroup").style.display = (mode === "secret") ? "none" : "block";
 }
 
 let gameConfig = {};
@@ -359,6 +407,8 @@ let selectedSongs = [];
 let currentRound = 0;
 let totalSongsToPlay = 0;
 let draftPickerIndex = 0;
+let bombCurrentLife = 0; // リアルタイムの残りライフ
+let bombMaxLife = 100;   // 初期最大ライフ
 
 function startTournament() {
     const pCount = parseInt(document.getElementById("playerCount").value);
@@ -367,53 +417,65 @@ function startTournament() {
         players.push({
             name: document.getElementById(`pName${i}`).value,
             order: parseInt(document.getElementById(`pOrder${i}`).value),
-            results: []
+            results: [],
+            totalDamage: 0 // 爆弾ルール用の被ダメージ合計
         });
     }
-    
-    // プレイヤーを指定された手番（順番）通りに並び替える
     players.sort((a, b) => a.order - b.order);
-    
-    // 【新規】チェックが入っている難易度帯をすべて配列に集める
+
     const checkboxes = document.getElementsByName("diffCheck");
     let selectedRanks = [];
-    checkboxes.forEach(cb => {
-        if (cb.checked) {
-            selectedRanks.push(cb.value);
-        }
-    });
+    checkboxes.forEach(cb => { if (cb.checked) selectedRanks.push(cb.value); });
     
-    // 難易度が一つも選ばれていない場合は警告を出して止める
     if (selectedRanks.length === 0) {
         alert("難易度帯を最低1つは選択してください！");
         return;
     }
-    
-    // 【新規】選択された難易度帯に合致する曲だけをデータベースから抽出
+
     filteredSongs = SONG_DATABASE.filter(song => {
         const cleanRank = song.rank.replace("地力", "");
         return selectedRanks.includes(song.rank) || selectedRanks.includes(cleanRank);
     });
-    
-    // 該当する曲がデータベースに1曲もない場合の安全処理
+
     if (filteredSongs.length === 0) {
-        alert("選択された難易度帯の曲がデータベースにありません。範囲を見直してください。");
+        alert("選択された難易度帯の曲がデータベースにありません。");
         return;
     }
+
+    const scoringRule = document.getElementById("scoringRule").value;
+    let songCountPerPlayer = 0;
     
-    const songCountPerPlayer = parseInt(document.getElementById("songCount").value);
-    totalSongsToPlay = songCountPerPlayer * pCount;
-    
+    if (scoringRule === 'bomb') {
+        // 爆弾ルールは曲数無制限（便宜上大きな数を設定しておき、ライフ消失で終了）
+        songCountPerPlayer = 999; 
+        totalSongsToPlay = 9999;
+        
+        const bombMode = document.getElementById("bombMode").value;
+        if (bombMode === 'secret') {
+            // 30〜100のランダムでライフ決定
+            bombMaxLife = Math.floor(Math.random() * (100 - 30 + 1)) + 30;
+        } else {
+            bombMaxLife = parseInt(document.getElementById("bombInitialLife").value) || 100;
+        }
+        bombCurrentLife = bombMaxLife;
+    } else {
+        songCountPerPlayer = parseInt(document.getElementById("songCount").value);
+        totalSongsToPlay = songCountPerPlayer * pCount;
+    }
+
     gameConfig = {
         players: players,
         songCountPerPlayer: songCountPerPlayer,
-        scoringRule: document.getElementById("scoringRule").value,
-        selectionMethod: document.getElementById("selectionMethod").value
+        scoringRule: scoringRule,
+        selectionMethod: document.getElementById("selectionMethod").value,
+        bombMode: document.getElementById("scoringRule").value === 'bomb' ? document.getElementById("bombMode").value : 'normal',
+        bombKaDamage: parseInt(document.getElementById("bombKaDamage").value) || 1,
+        bombFukaDamage: parseInt(document.getElementById("bombFukaDamage").value) || 2
     };
-    
+
     document.getElementById("setupSection").classList.remove("active");
     document.getElementById("gameSection").classList.add("active");
-    
+
     if (gameConfig.selectionMethod === 'draft') {
         initDraftMode();
     } else {
@@ -421,21 +483,20 @@ function startTournament() {
     }
 }
 
-
 function initDraftMode() {
-    const poolSize = Math.ceil(totalSongsToPlay * 1.5);
+    // 爆弾モードでドラフト選択の場合、とりあえず30曲プールを作る
+    const poolSize = gameConfig.scoringRule === 'bomb' ? 30 : Math.ceil(totalSongsToPlay * 1.5);
     drawnSongs = [];
     let tempDb = [...filteredSongs];
     for (let i = 0; i < poolSize; i++) {
         if (tempDb.length === 0) tempDb = [...filteredSongs];
         const randIdx = Math.floor(Math.random() * tempDb.length);
-        drawnSongs.push(tempDb.splice(randIdx, 1)[0]); // [0]を付与してオブジェクトを正しく抽出
+        drawnSongs.push(tempDb.splice(randIdx, 1)[0]);
     }
     selectedSongs = [];
     draftPickerIndex = 0;
     renderDraftScreen();
 }
-
 
 function initDraftMode() {
     const poolSize = Math.ceil(totalSongsToPlay * 1.5);
@@ -491,18 +552,60 @@ function drawNextNormalSong() {
 
 function initMatchProgress() {
     const currentSong = selectedSongs[currentRound];
-    document.getElementById("gameStatusTitle").innerText = `第 ${currentRound + 1} / ${totalSongsToPlay} 楽曲: ${currentSong.name} [${currentSong.rank}]`;
+    document.getElementById("gameStatusTitle").innerText = `第 ${currentRound + 1} 楽曲: ${currentSong.name} [${currentSong.rank}]`;
     
     const playerIndex = currentRound % gameConfig.players.length;
     const player = gameConfig.players[playerIndex];
 
-    // 入力欄を大きな文字で縦並びにするスタイル
+    // 爆弾ルール用のライフ表示UI ＆ ライフゲージ作成
+    let lifeDisplayHtml = "";
+    if (gameConfig.scoringRule === 'bomb') {
+        if (gameConfig.bombMode === 'secret') {
+            // シークレットモードは常に「？？？」で、ゲージは表示しない
+            lifeDisplayHtml = `
+                <div style="font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 15px; color: #747d8c;">
+                    💣 残りライフ：？？
+                </div>`;
+        } else {
+            // 通常モード：残りライフの割合（％）を計算
+            const ratio = bombCurrentLife / bombMaxLife;
+            const percentage = (ratio * 100).toFixed(0);
+            
+            let lifeColor = "#2ed573"; // 緑（5割以上）
+            let blinkClass = "";
+
+            // 【修正】点滅は2.5割ではなく「1割（0.1）を切ったとき」のみ発動
+            if (ratio < 0.1) {
+                lifeColor = "#ff4757"; // 赤
+                blinkClass = "life-blink"; // 1割を切ったら点滅
+            } else if (ratio < 0.25) {
+                lifeColor = "#ff4757"; // 赤（2.5割未満）
+                // ここでの blinkClass = "life-blink"; を削除したため、2.5割未満は点滅しません
+            } else if (ratio < 0.5) {
+                lifeColor = "#ffa502"; // 黄（5割未満）
+            }
+
+            // 残りライフの文字と、文字色・点滅に完全連動するライフゲージ（HPバー）
+            lifeDisplayHtml = `
+                <div class="${blinkClass}" style="font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 5px; color: ${lifeColor};">
+                    💣 残りライフ：${bombCurrentLife} / ${bombMaxLife}
+                </div>
+                <div style="max-width: 400px; margin: 0 auto 20px auto; background-color: #ddd; border-radius: 10px; height: 16px; overflow: hidden; border: 1px solid #ccc;">
+                    <div class="${blinkClass}" style="width: ${percentage}%; background-color: ${lifeColor}; height: 100%; transition: width 0.3s ease;"></div>
+                </div>`;
+        }
+    }
+
     let html = `
-        ${gameConfig.selectionMethod === 'normal' ? `
+    ${lifeDisplayHtml}
+    
+    <!-- この曲を引き直すボタン（通常モードの時だけ表示） -->
+    ${gameConfig.selectionMethod === 'normal' ? `
         <div style="text-align: center; margin-bottom: 15px;">
             <button type="button" class="btn" onclick="redrawCurrentSong()" style="margin-top:0; padding:8px 16px; font-size:14px; background-color:var(--accent-color); width:auto;">🔄 この曲を引き直す</button>
         </div>
     ` : ''}
+
     <div class="match-block" style="padding: 20px;">
         <p style="text-align:center; font-weight:bold; color:var(--primary-color); font-size:20px; margin-bottom: 20px;">
             🔥 ${player.name} さんのプレイ番です 🔥
@@ -535,7 +638,12 @@ function initMatchProgress() {
     
     const btn = document.getElementById("actionBtn");
     btn.style.display = "block";
-    btn.innerText = (currentRound === totalSongsToPlay - 1) ? "すべての結果を計算してリザルトへ" : "スコアを記録して次の曲へ";
+    
+    if (gameConfig.scoringRule === 'bomb') {
+        btn.innerText = "スコアを記録してダメージ判定へ";
+    } else {
+        btn.innerText = (currentRound === totalSongsToPlay - 1) ? "すべての結果を計算してリザルトへ" : "スコアを記録して次の曲へ";
+    }
 }
 
 // リアルタイムでコンボ数を画面上で自動計算して表示する関数
@@ -554,13 +662,23 @@ function handleGameAction() {
     const ka = parseInt(document.getElementById(`ka_${playerIndex}`).value) || 0;
     const fuka = parseInt(document.getElementById(`fuka_${playerIndex}`).value) || 0;
     
-    // 良＋可＋不可を自動で最大コンボ数にする
     const combo = ryo + ka + fuka;
-    
-    // 最低でも1個以上の入力（すべて0ではない状態）があるか確認
     if (combo === 0) {
         alert("数値を入力してください。");
         return;
+    }
+    
+    // 【爆弾ルール】ダメージ計算とライフ減少処理
+    if (gameConfig.scoringRule === 'bomb') {
+        const damage = (ka * gameConfig.bombKaDamage) + (fuka * gameConfig.bombFukaDamage);
+        bombCurrentLife -= damage;
+        gameConfig.players[playerIndex].totalDamage += damage; // この人が削った累計ダメージ
+        
+        // ライフが0以下になったらトドメを刺された（終了時にプレイしていた）人を記録
+        if (bombCurrentLife <= 0) {
+            bombCurrentLife = 0;
+            gameConfig.loserIndex = playerIndex; 
+        }
     }
     
     gameConfig.players[playerIndex].results.push({
@@ -571,18 +689,31 @@ function handleGameAction() {
         fuka: fuka
     });
     
+    // 【爆弾ルール】ライフが尽きたらその場で即終了、リザルト画面へ
+    if (gameConfig.scoringRule === 'bomb' && bombCurrentLife <= 0) {
+        alert(`💥 爆弾が爆発しました！ 💥\n${gameConfig.players[playerIndex].name} さんのプレイでライフが 0 になりました。試合終了です！`);
+        showFinalResults();
+        return;
+    }
+    
     currentRound++;
-    if (currentRound < totalSongsToPlay) {
+    
+    // 次の曲への遷移処理（通常ルール、または爆弾ルールが継続している場合）
+    if (gameConfig.scoringRule === 'bomb' || currentRound < totalSongsToPlay) {
         if (gameConfig.selectionMethod === 'normal') {
             drawNextNormalSong();
         } else {
+            // ドラフト選択でプールが切れたら自動的に新しい曲を補給する安全処理
+            if (currentRound >= selectedSongs.length) {
+                const randIdx = Math.floor(Math.random() * filteredSongs.length);
+                selectedSongs.push(filteredSongs[randIdx]);
+            }
             initMatchProgress();
         }
     } else {
         showFinalResults();
     }
 }
-
 
 function abortTournament() {
     if (confirm("本当にこの試合を中断して、最初の設定画面に戻りますか？\n（現在の記録はすべて消去されます）")) {
@@ -597,7 +728,7 @@ function showFinalResults() {
     const customKa = parseInt(document.getElementById("customKaPoint").value) || 1;
     const customFuka = parseInt(document.getElementById("customFukaPoint").value) || 2;
     
-    let scoredPlayers = gameConfig.players.map(player => {
+    let scoredPlayers = gameConfig.players.map((player, pIdx) => {
         let totalRatioSum = 0, totalPenaltyPoints = 0;
         let totalRyo = 0, totalKa = 0, totalFuka = 0;
         
@@ -612,7 +743,6 @@ function showFinalResults() {
             
             const songRatio = ((res.ryo / res.maxCombo) * 100).toFixed(2);
             
-            // 【バグ完全修正】曲名（res.songName）をキーにして、巨大データベース（SONG_DATABASE）から直接正しい難易度を引っ張ってくる処理に変更
             let songRank = "-";
             const targetSong = SONG_DATABASE.find(s => s.name === res.songName);
             if (targetSong) {
@@ -629,27 +759,46 @@ function showFinalResults() {
             `);
         });
         
-        const finalScoreValue = (gameConfig.scoringRule === 'ratio') ? 
-            (totalRatioSum / gameConfig.songCountPerPlayer).toFixed(2) : totalPenaltyPoints;
-            
-        const displayScore = (gameConfig.scoringRule === 'ratio') ? `${finalScoreValue}%` : `${finalScoreValue} pt (減点)`;
+        let displayScore = "";
+        if (gameConfig.scoringRule === 'bomb') {
+            displayScore = `累計被ダメージ: ${player.totalDamage} pt`;
+            if (pIdx === gameConfig.loserIndex) displayScore += " (死亡)";
+        } else {
+            displayScore = (gameConfig.scoringRule === 'ratio') ? `${(totalRatioSum / gameConfig.songCountPerPlayer).toFixed(2)}%` : `${totalPenaltyPoints} pt (減点)`;
+        }
         
         return {
+            id: pIdx,
             name: player.name,
-            finalScoreValue: parseFloat(finalScoreValue),
             totalRyo: totalRyo,
             totalKa: totalKa,
             totalFuka: totalFuka,
+            totalDamage: player.totalDamage,
             displayScore: displayScore,
             playCount: player.results.length,
             rowsArray: rowsArray
         };
     });
     
-    if (gameConfig.scoringRule === 'ratio') {
-        scoredPlayers.sort((a, b) => b.finalScoreValue - a.finalScoreValue);
+    // 【爆弾ルール対応】順位並び替えロジック
+    if (gameConfig.scoringRule === 'bomb') {
+        scoredPlayers.sort((a, b) => {
+            if (a.id === gameConfig.loserIndex) return 1;
+            if (b.id === gameConfig.loserIndex) return -1;
+            return a.totalDamage - b.totalDamage; // ダメージが少ない人ほど上位
+        });
     } else {
-        scoredPlayers.sort((a, b) => a.finalScoreValue - b.finalScoreValue);
+        if (gameConfig.scoringRule === 'ratio') {
+            // スコアを数値化して降順ソート
+            scoredPlayers.sort((a, b) => parseFloat(b.displayScore) - parseFloat(a.displayScore));
+        } else {
+            // スコアを数値化して昇順ソート
+            scoredPlayers.sort((a, b) => parseFloat(a.displayScore) - parseFloat(b.displayScore));
+        }
+    }
+    
+    if (gameConfig.scoringRule === 'bomb') {
+        document.getElementById("gameStatusTitle").innerHTML += `<br><span style="font-size:14px; color:#555;">(爆弾ルール終了 / 設定時の最大ライフ: ${bombMaxLife})</span>`;
     }
     
     // ① 総合順位表（スッキリ版）
@@ -743,11 +892,11 @@ function toggleDetailScoreTable() {
     
     if (section.style.display === "none") {
         section.style.display = "block";
-        btn.innerText = "❌ 詳細を閉じる";
+        btn.innerText = "❌ 詳細なリザルトを閉じる";
         btn.style.backgroundColor = "#747d8c";
     } else {
         section.style.display = "none";
-        btn.innerText = "🔍 詳細を表示";
+        btn.innerText = "🔍 詳細なリザルトを表示";
         btn.style.backgroundColor = "var(--accent-color)";
     }
 }
