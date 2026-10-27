@@ -393,6 +393,17 @@ function toggleScoringRuleOptions() {
     document.getElementById("penaltyPointsContainer").style.display = (rule === "points") ? "grid" : "none";
     document.getElementById("bombRuleContainer").style.display = (rule === "bomb") ? "block" : "none";
     document.getElementById("songCountFormGroup").style.display = (rule === "bomb") ? "none" : "block";
+    
+    // 【新規】爆弾モードの時は「4. ランダム選曲の方法」のセレクトボックスごと非表示にする
+    const selectionMethodForm = document.getElementById("selectionMethod").closest('.form-group');
+    if (selectionMethodForm) {
+        if (rule === "bomb") {
+            selectionMethodForm.style.display = "none";
+            document.getElementById("selectionMethod").value = "normal"; // 強制的に通常選曲モードにする
+        } else {
+            selectionMethodForm.style.display = "block";
+        }
+    }
 }
 
 function toggleBombSecretMode() {
@@ -545,88 +556,94 @@ function initNormalMode() {
 }
 
 function drawNextNormalSong() {
-    const randIdx = Math.floor(Math.random() * filteredSongs.length);
-    selectedSongs.push(filteredSongs[randIdx]);
+    // 次の曲を自動選択せず、一旦画面をリセットして「抽選する」ボタンを待つ状態にする
     initMatchProgress();
 }
 
+// 【新規】「この曲を抽選する」ボタンを押したときに初めてランダム選曲を行う関数
+function triggerFirstLottery() {
+    const randIdx = Math.floor(Math.random() * filteredSongs.length);
+    // 重複禁止ルール（splice）を適用してプールから曲を抜き出す
+    const song = filteredSongs.splice(randIdx, 1)[0]; 
+    
+    selectedSongs[currentRound] = song;
+    initMatchProgress(); // 曲が決まった状態で画面を再描画
+}
+
+
 function initMatchProgress() {
+    // 現在のラウンドの曲がすでに決まっているか（抽選済みか）をチェック
     const currentSong = selectedSongs[currentRound];
-    document.getElementById("gameStatusTitle").innerText = `第 ${currentRound + 1} 楽曲: ${currentSong.name} [${currentSong.rank}]`;
+    const isSongSelected = (currentSong !== undefined);
+    
+    // 曲が決まっているなら曲名、決まっていないなら「？？？」にする
+    const songTitleDisplay = isSongSelected ? `${currentSong.name} [${currentSong.rank}]` : "？？？ [？]";
+    document.getElementById("gameStatusTitle").innerText = `第 ${currentRound + 1} 楽曲: ${songTitleDisplay}`;
     
     const playerIndex = currentRound % gameConfig.players.length;
     const player = gameConfig.players[playerIndex];
 
-    // 爆弾ルール用のライフ表示UI ＆ ライフゲージ作成
     let lifeDisplayHtml = "";
     if (gameConfig.scoringRule === 'bomb') {
         if (gameConfig.bombMode === 'secret') {
-            // シークレットモードは常に「？？？」で、ゲージは表示しない
-            lifeDisplayHtml = `
-                <div style="font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 15px; color: #747d8c;">
-                    💣 残りライフ：？？
-                </div>`;
+            lifeDisplayHtml = `<div style="font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 15px; color: #747d8c;">💣 残りライフ：？？</div>`;
         } else {
-            // 通常モード：残りライフの割合（％）を計算
             const ratio = bombCurrentLife / bombMaxLife;
             const percentage = (ratio * 100).toFixed(0);
-            
-            let lifeColor = "#2ed573"; // 緑（5割以上）
+            let lifeColor = "#2ed573";
             let blinkClass = "";
+            if (ratio < 0.1) { lifeColor = "#ff4757"; blinkClass = "life-blink"; }
+            else if (ratio < 0.25) { lifeColor = "#ff4757"; }
+            else if (ratio < 0.5) { lifeColor = "#ffa502"; }
 
-            // 【修正】点滅は2.5割ではなく「1割（0.1）を切ったとき」のみ発動
-            if (ratio < 0.1) {
-                lifeColor = "#ff4757"; // 赤
-                blinkClass = "life-blink"; // 1割を切ったら点滅
-            } else if (ratio < 0.25) {
-                lifeColor = "#ff4757"; // 赤（2.5割未満）
-                // ここでの blinkClass = "life-blink"; を削除したため、2.5割未満は点滅しません
-            } else if (ratio < 0.5) {
-                lifeColor = "#ffa502"; // 黄（5割未満）
-            }
-
-            // 残りライフの文字と、文字色・点滅に完全連動するライフゲージ（HPバー）
             lifeDisplayHtml = `
-                <div class="${blinkClass}" style="font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 5px; color: ${lifeColor};">
-                    💣 残りライフ：${bombCurrentLife} / ${bombMaxLife}
-                </div>
+                <div class="${blinkClass}" style="font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 5px; color: ${lifeColor};">💣 残りライフ：${bombCurrentLife} / ${bombMaxLife}</div>
                 <div style="max-width: 400px; margin: 0 auto 20px auto; background-color: #ddd; border-radius: 10px; height: 16px; overflow: hidden; border: 1px solid #ccc;">
                     <div class="${blinkClass}" style="width: ${percentage}%; background-color: ${lifeColor}; height: 100%; transition: width 0.3s ease;"></div>
                 </div>`;
         }
     }
 
+    // 通常モード、または爆弾モードのときの「抽選ボタン」システム
+    let actionButtonHtml = "";
+    if (gameConfig.selectionMethod === 'normal' || gameConfig.scoringRule === 'bomb') {
+        if (!isSongSelected) {
+            // まだ曲が決まっていないときは「抽選する」ボタンを出す
+            actionButtonHtml = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <button type="button" class="btn" onclick="triggerFirstLottery()" style="margin-top:0; padding:10px 24px; font-size:16px; background-color:var(--primary-color); width:auto;">🎲 この曲を抽選する</button>
+                </div>`;
+        } else {
+            // 曲が決まったあとは「この曲を引き直す」ボタンに切り替える
+            actionButtonHtml = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <button type="button" class="btn" onclick="redrawCurrentSong()" style="margin-top:0; padding:8px 16px; font-size:14px; background-color:var(--accent-color); width:auto;">🔄 この曲を引き直す</button>
+                </div>`;
+        }
+    }
+
     let html = `
     ${lifeDisplayHtml}
-    
-    <!-- この曲を引き直すボタン（通常モードの時だけ表示） -->
-    ${gameConfig.selectionMethod === 'normal' ? `
-        <div style="text-align: center; margin-bottom: 15px;">
-            <button type="button" class="btn" onclick="redrawCurrentSong()" style="margin-top:0; padding:8px 16px; font-size:14px; background-color:var(--accent-color); width:auto;">🔄 この曲を引き直す</button>
-        </div>
-    ` : ''}
+    ${actionButtonHtml}
 
-    <div class="match-block" style="padding: 20px;">
+    <!-- 曲が決まるまでは入力フォームを少し薄くして、入力できないようにガード（disabled）をかける -->
+    <div class="match-block" style="padding: 20px; opacity: ${isSongSelected ? '1' : '0.4'}; pointer-events: ${isSongSelected ? 'auto' : 'none'};">
         <p style="text-align:center; font-weight:bold; color:var(--primary-color); font-size:20px; margin-bottom: 20px;">
             🔥 ${player.name} さんのプレイ番です 🔥
         </p>
-        
         <div style="max-width: 400px; margin: 0 auto;">
             <div class="form-group" style="margin-bottom: 15px;">
                 <label style="font-size: 18px; color: #2ed573;">● 良の数</label>
-                <input type="number" id="ryo_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})">
+                <input type="number" id="ryo_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})" ${isSongSelected ? '' : 'disabled'}>
             </div>
-            
             <div class="form-group" style="margin-bottom: 15px;">
                 <label style="font-size: 18px; color: #ffa502;">● 可の数</label>
-                <input type="number" id="ka_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})">
+                <input type="number" id="ka_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})" ${isSongSelected ? '' : 'disabled'}>
             </div>
-            
             <div class="form-group" style="margin-bottom: 15px;">
                 <label style="font-size: 18px; color: #ff4757;">● 不可の数</label>
-                <input type="number" id="fuka_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})">
+                <input type="number" id="fuka_${playerIndex}" placeholder="0" min="0" style="font-size: 20px; padding: 12px;" oninput="calculateAutoCombo(${playerIndex})" ${isSongSelected ? '' : 'disabled'}>
             </div>
-            
             <div style="margin-top: 20px; padding: 15px; background: #fff; border: 2px dashed #ddd; border-radius: 8px; text-align: center;">
                 <span style="font-size: 14px; color: #555; font-weight: bold;">【自動計算】最大コンボ数</span>
                 <div id="autoComboDisplay_${playerIndex}" style="font-size: 28px; font-weight: bold; color: var(--dark-color); margin-top: 5px;">0</div>
@@ -637,7 +654,8 @@ function initMatchProgress() {
     document.getElementById("matchPlayArea").innerHTML = html;
     
     const btn = document.getElementById("actionBtn");
-    btn.style.display = "block";
+    // 曲が決まるまでは、一番下の「次のステップへ」ボタンを非表示にする
+    btn.style.display = isSongSelected ? "block" : "none";
     
     if (gameConfig.scoringRule === 'bomb') {
         btn.innerText = "スコアを記録してダメージ判定へ";
@@ -749,13 +767,14 @@ function showFinalResults() {
                 songRank = targetSong.rank;
             }
             
+            // 【修正】良の割合を一番右端に配置するため、セルの順番を「良・可・不可・良の割合」の順に変更
             rowsArray.push(`
                 <td>${res.songName}</td>
                 <td><span class="badge">[${songRank}]</span></td>
-                <td>${songRatio}%</td>
                 <td>${res.ryo}</td>
                 <td>${res.ka}</td>
                 <td>${res.fuka}</td>
+                <td style="font-weight:bold; color:var(--primary-color);">${songRatio}%</td>
             `);
         });
         
@@ -780,19 +799,16 @@ function showFinalResults() {
         };
     });
     
-    // 【爆弾ルール対応】順位並び替えロジック
     if (gameConfig.scoringRule === 'bomb') {
         scoredPlayers.sort((a, b) => {
             if (a.id === gameConfig.loserIndex) return 1;
             if (b.id === gameConfig.loserIndex) return -1;
-            return a.totalDamage - b.totalDamage; // ダメージが少ない人ほど上位
+            return a.totalDamage - b.totalDamage;
         });
     } else {
         if (gameConfig.scoringRule === 'ratio') {
-            // スコアを数値化して降順ソート
             scoredPlayers.sort((a, b) => parseFloat(b.displayScore) - parseFloat(a.displayScore));
         } else {
-            // スコアを数値化して昇順ソート
             scoredPlayers.sort((a, b) => parseFloat(a.displayScore) - parseFloat(b.displayScore));
         }
     }
@@ -829,7 +845,7 @@ function showFinalResults() {
     });
     html += `</tbody></table>`;
     
-    // ② 横長の詳細テーブル
+    // ② 【修正版】横長の詳細テーブル（ヘッダーと縦結合のズレを完全修正）
     let detailTableHtml = `
     <div id="detailScoreSection" style="display: none; margin-top: 20px; overflow-x: auto;">
         <h3 style="text-align:center; margin-bottom:15px; color:var(--dark-color);">📊 全楽曲・プレイ詳細リザルト</h3>
@@ -839,13 +855,10 @@ function showFinalResults() {
                     <th>プレイヤー</th>
                     <th>曲名</th>
                     <th>難易度帯</th>
-                    <th>良の割合</th>
                     <th>良</th>
                     <th>可</th>
                     <th>不可</th>
-                    <th>全体の良</th>
-                    <th>全体の可</th>
-                    <th>全体の不可</th>
+                    <th>良の割合</th>
                 </tr>
             </thead>
             <tbody>`;
@@ -853,15 +866,14 @@ function showFinalResults() {
     scoredPlayers.forEach(p => {
         p.rowsArray.forEach((songCells, i) => {
             if (i === 0) {
+                // 1曲目の行：プレイヤー名セルのみを曲数分（rowspan）縦結合。右端の全体合計セルは削除しました
                 detailTableHtml += `
                 <tr>
                     <td rowspan="${p.playCount}" style="font-weight:bold; background:#f9f9f9; vertical-align:middle;">${p.name}</td>
                     ${songCells}
-                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#fff200; vertical-align:middle;">${p.totalRyo}</td>
-                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#ffeaa7; vertical-align:middle;">${p.totalKa}</td>
-                    <td rowspan="${p.playCount}" style="font-weight:bold; background:#ffccd5; vertical-align:middle;">${p.totalFuka}</td>
                 </tr>`;
             } else {
+                // 2曲目以降の行
                 detailTableHtml += `
                 <tr>
                     ${songCells}
